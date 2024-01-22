@@ -1,2 +1,5 @@
-# CS446-Group-17
-CS446 group project
+# DESCRIPTIVE TITLE NEEDED
+
+Group #: 17
+Group Members: 
+  Kareem Saidoun (20845519)
