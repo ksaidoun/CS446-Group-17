@@ -6,3 +6,4 @@ Group Members:
 - Quang Minh Nguyen (20920327)
 - Albina Babuk (20877867)
 - Hemika Roy (20835090)
+- Lauren Smith (20775886)
