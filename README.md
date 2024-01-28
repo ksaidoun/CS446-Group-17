@@ -7,4 +7,4 @@ Group Members:
 - Albina Babuk (20877867). Github username: albina-dev, Quest username: ababuk
 - Hemika Roy (20835090). Github username: h3roy, Quest username: h3roy
 - Lauren Smith (20775886). Github username: Lauren15468, Quest username: ll3smith
-- Sherry Lev. Quest username: slev
+- Sherry Lev (20883108). Github username: SherryLev, Quest username: slev
