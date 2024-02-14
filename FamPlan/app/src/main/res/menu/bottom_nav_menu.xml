@@ -20,4 +20,8 @@
         android:id="@+id/navigation_voting"
         android:icon="@drawable/ic_voting_black_24dp"
         android:title="@string/title_voting" />
+    <item
+        android:id="@+id/navigation_gallery"
+        android:icon="@drawable/ic_gallery_black_24dp"
+        android:title="@string/title_gallery" />
 </menu>

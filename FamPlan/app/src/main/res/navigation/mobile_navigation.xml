@@ -29,4 +29,10 @@
         android:label="@string/title_voting"
         tools:layout="@layout/fragment_voting" />
 
+    <fragment
+        android:id="@+id/navigation_gallery"
+        android:name="com.example.famplan.ui.gallery.GalleryFragment"
+        android:label="@string/title_gallery"
+        tools:layout="@layout/fragment_gallery" />
+
 </navigation>
