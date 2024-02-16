@@ -20,7 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun App() {
+fun BottomNavBar() {
     val navController = rememberNavController()
 
     val navItems = listOf(
