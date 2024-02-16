@@ -6,3 +6,4 @@
 |2024/02/02  |  2.0   |  2.0   | 2.0    |        |  2.0    | 2.0    | Reviewing feedback and finalizing proposal
 |2024/02/07  |        |   3.0  | 6.0    |        |         | 5.0    | Planning app layout and working on figma
 |2024/02/12  |  2.0   |        | 2.0    |        |         |        | Buddy Evaluation work
+|2024/02/16  |  6.0   |        |        |        |         |        | Create the navigation bar at the bottom of the screen
