@@ -1,7 +1,6 @@
 package com.example.famplanapp
 
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Scaffold
@@ -13,14 +12,13 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun BottomNavBar() {
+fun BottomNavBar(){
     val navController = rememberNavController()
 
     val navItems = listOf(
@@ -40,7 +38,7 @@ fun BottomNavBar() {
                         label = { Text(navItem.title) },
                         selected = selectedItem == index,
                         onClick = {
-                            selectedItem=index
+                            selectedItem = index
                             navController.navigate(navItem.title) {
                                 popUpTo(navController.graph.startDestinationRoute!!) {
                                     saveState = true
@@ -53,27 +51,27 @@ fun BottomNavBar() {
                 }
             }
         }
-    ) { innerPadding->
+    ) { innerPadding ->
         NavHost(navController, startDestination = "Home") {
             composable("Home") {
-                Text("HOME", Modifier.padding(innerPadding))
+                Home(innerPadding)
                 // Screen content for Home
             }
             composable("Schedule") {
                 // Screen content for Schedule
-                Text("Schedule", Modifier.padding(innerPadding))
+                Schedule(innerPadding)
             }
             composable("Tasks") {
                 // Screen content for Tasks
-                Text("Tasks", Modifier.padding(innerPadding))
+                Tasks(innerPadding)
             }
             composable("Voting") {
                 // Screen content for Voting
-                Text("Voting", Modifier.padding(innerPadding))
+                Voting(innerPadding)
             }
             composable("Gallery") {
                 // Screen content for Gallery
-                Text("Gallery", Modifier.padding(innerPadding))
+                Gallery(innerPadding)
             }
         }
     }

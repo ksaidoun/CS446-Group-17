@@ -1,10 +1,10 @@
 package com.example.famplanapp
 
+import SignInScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.famplanapp.ui.theme.FamPlanAppTheme
-import androidx.compose.foundation.layout.*
 
 
 class MainActivity : ComponentActivity() {
@@ -13,8 +13,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FamPlanAppTheme {
-                BottomNavBar()
-
+                SignInScreen()
             }
         }
     }
