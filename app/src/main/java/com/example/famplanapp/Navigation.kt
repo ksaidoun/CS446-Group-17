@@ -1,6 +1,8 @@
 package com.example.famplanapp
 
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Scaffold
@@ -17,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BottomNavBar(){
     val navController = rememberNavController()
@@ -67,7 +70,7 @@ fun BottomNavBar(){
             }
             composable("Voting") {
                 // Screen content for Voting
-                Voting(innerPadding)
+                PollList(samplePosts)
             }
             composable("Gallery") {
                 // Screen content for Gallery
