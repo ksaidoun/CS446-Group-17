@@ -5,6 +5,10 @@
     <string name="title_tasks">Tasks</string>
     <string name="title_voting">Voting</string>
     <string name="title_gallery">Gallery</string>
-<!-- TODO: Remove or change this placeholder text -->
+
+    <string name="previous_week_button_text">&lt;-</string>
+    <string name="next_week_button_text">-&gt;</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
