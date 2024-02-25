@@ -1,8 +1,10 @@
 package com.example.famplanapp
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,10 +23,12 @@ import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.DatePicker
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,6 +48,7 @@ import androidx.compose.ui.unit.toSize
 
 @Composable
 fun Tasks(innerPadding: PaddingValues) {
+    var showFormScreen by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -61,19 +66,22 @@ fun Tasks(innerPadding: PaddingValues) {
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 60.dp, end = 16.dp)
         ) {
-            NewTaskButton()
+            OutlinedButton(
+                onClick = {  showFormScreen = true }
+            ) {
+                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                Text("New Task")
+            }
+        }
+        if (showFormScreen) {
+            NewTaskScreen(onClose = { showFormScreen = false })
         }
     }
 }
 
 @Composable
 fun NewTaskButton() {
-   OutlinedButton(
-       onClick = { /*TODO*/ }
-   ) {
-       Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-       Text("New Task")
-   }
+
 }
 
 @Composable
@@ -123,7 +131,69 @@ fun FilterDropdown() {
 }
 
 @Composable
-fun NewTaskScreen() {
+fun NewTaskScreen(onClose: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .background(color = Color.White)
+    ) {
+        // Text field
+        TextField(
+            value = "",
+            onValueChange = { /* Handle text field change */ },
+            label = { Text("Title") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        // Date picker
+        // Dropdown menu
+        var expanded by remember { mutableStateOf(false) }
+        val options = listOf("None", "Dad", "Mom", "Sister", "Brother")
+        var selectedItem by remember { mutableStateOf("None") }
+
+        val icon = if (expanded)
+            Icons.Filled.KeyboardArrowUp
+        else
+            Icons.Filled.KeyboardArrowDown
+
+        OutlinedTextField(
+            value = selectedItem,
+            onValueChange = { selectedItem = it },
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .onGloballyPositioned { coordinates ->
+                },
+            trailingIcon = {
+                Icon(icon,"contentDescription",
+                    Modifier.clickable { expanded = !expanded })
+            },
+            readOnly = true,
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.None)
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { /* Handle dismiss request */ },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            options.forEach { label ->
+                DropdownMenuItem(onClick = {
+                    selectedItem = label
+                    expanded = false
+                }) {
+                    Text(text = label)
+                }
+            }
+        }
+        // Text field extending to the bottom
+        TextField(
+            value = "",
+            onValueChange = { /* Handle text field change */ },
+            label = { Text("Notes") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max)
+        )
+    }
 
 
 }
