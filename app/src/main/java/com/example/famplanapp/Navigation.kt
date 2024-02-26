@@ -1,6 +1,7 @@
 package com.example.famplanapp
 
 
+import PhotoGallery
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Scaffold
@@ -19,6 +20,16 @@ import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun BottomNavBar(){
+    val photos = mutableListOf<Int>()
+    repeat(5) {
+        photos.addAll(listOf(
+            R.drawable.test1,
+            R.drawable.test2,
+            R.drawable.test3,
+            R.drawable.test4
+        ))
+    }
+
     val navController = rememberNavController()
 
     val navItems = listOf(
@@ -71,10 +82,15 @@ fun BottomNavBar(){
             }
             composable("Gallery") {
                 // Screen content for Gallery
-                Gallery(innerPadding)
+                Gallery(photos)
             }
         }
     }
+}
+
+@Composable
+fun Gallery(photos: List<Int>) {
+    PhotoGallery(photos = photos)
 }
 
 data class NavItem(val title: String, val icon: ImageVector)
