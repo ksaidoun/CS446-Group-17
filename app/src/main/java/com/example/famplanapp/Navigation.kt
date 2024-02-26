@@ -2,6 +2,13 @@ package com.example.famplanapp
 
 
 import PhotoGallery
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Scaffold
@@ -13,7 +20,12 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -82,7 +94,24 @@ fun BottomNavBar(){
             }
             composable("Gallery") {
                 // Screen content for Gallery
-                Gallery(photos)
+                Box(modifier = Modifier.fillMaxSize().padding(top = 60.dp, bottom = 60.dp)) {
+                    Gallery(photos)
+
+                    Box(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .size(56.dp)
+                            .background(MaterialTheme.colors.primary, CircleShape)
+                            .clickable { /* Handle button click */ }
+                            .align(Alignment.BottomEnd)
+                    ) {
+                        Text(
+                            text = "+",
+                            style = TextStyle(color = MaterialTheme.colors.background, fontSize = 24.sp),
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
             }
         }
     }
