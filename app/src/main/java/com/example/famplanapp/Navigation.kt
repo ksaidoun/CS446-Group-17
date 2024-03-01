@@ -30,6 +30,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BottomNavBar(){
     val photos = mutableListOf<Int>()
@@ -90,7 +91,7 @@ fun BottomNavBar(){
             }
             composable("Voting") {
                 // Screen content for Voting
-                Voting(innerPadding)
+                PollList(samplePosts)
             }
             composable("Gallery") {
                 // Screen content for Gallery
