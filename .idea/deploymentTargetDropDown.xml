@@ -8,6 +8,15 @@
       <entry key="FamPlanApp.app">
         <State />
       </entry>
+      <entry key="FamPlanApp.app.androidTest">
+        <State />
+      </entry>
+      <entry key="FamPlanApp.app.unitTest">
+        <State />
+      </entry>
+      <entry key="app">
+        <State />
+      </entry>
     </value>
   </component>
 </project>
