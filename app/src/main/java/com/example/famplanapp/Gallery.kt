@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.time.LocalDate
 
 @Composable
 fun PhotoGallery(photos: List<Int>) {
@@ -82,6 +83,7 @@ fun PhotoItem(photoResId: Int, onClick: (Int) -> Unit) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FullSizeImageModal(photoResId: Int, onClose: () -> Unit) {
+    val currentDate = LocalDate.now()
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Expanded)
 
@@ -130,7 +132,7 @@ fun FullSizeImageModal(photoResId: Int, onClose: () -> Unit) {
                     .background(MaterialTheme.colors.background)
             ) {
                 Text(
-                    text = "Uploader: Kw\nDate: Testing Date",
+                    text = "Uploader: Brandon\nDate: $currentDate",
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier
                         .padding(16.dp)

@@ -98,7 +98,9 @@ fun BottomNavBar(){
             }
             composable("Gallery") {
                 // Screen content for Gallery
-                Box(modifier = Modifier.fillMaxSize().padding(top = 60.dp, bottom = 60.dp)) {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 60.dp, bottom = 60.dp)) {
                     Gallery(photos)
 
                     Box(
@@ -106,7 +108,10 @@ fun BottomNavBar(){
                             .padding(16.dp)
                             .size(56.dp)
                             .background(MaterialTheme.colors.primary, CircleShape)
-                            .clickable { /* Handle button click */ }
+                            .clickable {
+                                photos.add(R.drawable.test1)
+                                navController.navigate("Gallery")
+                            }
                             .align(Alignment.BottomEnd)
                     ) {
                         Text(
