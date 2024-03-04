@@ -52,9 +52,8 @@ fun CalendarUI(currentWeekSunday: LocalDate) {
             }
         }
 
-        LazyColumn(Modifier.fillMaxSize()) {
-            items(25) { rowIndex ->
-
+        LazyColumn(Modifier.fillMaxSize().padding(bottom = 50.dp)) {
+            items(24) { rowIndex ->
                 Row(Modifier.fillMaxWidth()) {
                     Box(
                         modifier = Modifier
