@@ -63,6 +63,7 @@ fun BottomNavBar(){
                         icon = { Icon(navItem.icon, contentDescription = null) },
                         label = { Text(navItem.title) },
                         selected = selectedItem == index,
+
                         onClick = {
                             selectedItem = index
                             navController.navigate(navItem.title) {

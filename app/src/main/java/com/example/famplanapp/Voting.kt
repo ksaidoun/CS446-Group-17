@@ -29,8 +29,7 @@ import androidx.compose.ui.unit.sp
 import java.time.Duration
 import java.time.LocalDateTime
 
-val darkPurple = 0xFF220059
-val lightPurple = 0xFFEDE7F7
+
 
 data class PollOption(
     val option: String,
