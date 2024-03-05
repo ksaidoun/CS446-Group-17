@@ -1,5 +1,9 @@
 package com.example.famplanapp
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.widget.DatePicker
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,52 +11,55 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import java.time.LocalDateTime
+import java.util.Calendar
+
+
+sealed class Routes(val route: String) {
+    object NewTask : Routes("TaskCreation")
+}
 
 @Composable
-fun TaskCreator(addTask: (Task) -> Unit) {
-    var title by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
-
+fun Navigation(){
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = Routes.NewTask.route) {
+        composable(Routes.NewTask.route) {
+            TasksCreation(navController = navController)
+        }
+    }
+}
+@Composable
+fun Tasks(navController: NavController) {
     Column(modifier = Modifier.padding(16.dp)) {
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = notes,
-            onValueChange = { notes = it },
-            label = { Text("Notes") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
+        Text("TEST ")
         Button(
             onClick = {
-                val task = Task(title = title, notes = notes)
-                addTask(task)
-                title = ""
-                notes = ""
+                navController.navigate(Routes.NewTask.route)
             },
-
             modifier = Modifier.align(Alignment.End),
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White,
-                contentColor = Color(darkPurple))
-        ) {
-            Text("Create Task", style = TextStyle(
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.White,
+                contentColor = Color(darkPurple)
             )
+        ) {
+            Text(
+                "+",
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
             )
         }
     }
@@ -103,5 +110,3 @@ fun Tasks(innerPadding: PaddingValues) {
         TaskDisplayArea(tasks, deleteTask = { task -> tasks.remove(task) })
     }
 }
-
-data class Task(val title: String, val notes: String)
