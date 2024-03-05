@@ -7,11 +7,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -60,7 +62,7 @@ fun ReadonlyOutlinedTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier.width(150.dp),
             label = label,
 
             )
@@ -74,7 +76,7 @@ fun ReadonlyOutlinedTextField(
 }
 
 @Composable
-fun TasksDatePicker() {
+fun TasksDatePicker(): LocalDateTime? {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
@@ -111,6 +113,7 @@ fun TasksDatePicker() {
             Text(text = "Due Date")
         }
     }
+    return LocalDateTime.of(year, month, day, 0, 0)
 }
 
 @Composable
@@ -128,7 +131,7 @@ fun TasksTimePicker() {
         }, hour, minute, false
     )
     Column(
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.End
     ) {
         ReadonlyOutlinedTextField(
             value = selectedTimeText,
@@ -137,53 +140,7 @@ fun TasksTimePicker() {
                 timePicker.show()
             }
         ) {
-            Text(text = "Reminder Time")
-        }
-    }
-}
-
-@Composable
-fun FilterDropdown() {
-    var expanded by remember { mutableStateOf(false) }
-    val options = listOf("My Tasks", "All Tasks", "Subscribed Tasks", "Unassigned Tasks")
-    var selectedItem by remember { mutableStateOf("My Tasks") }
-    //var mTextFieldSize by remember { mutableStateOf(Size.Zero)}
-
-    val icon = if (expanded)
-        Icons.Filled.KeyboardArrowUp
-    else
-        Icons.Filled.KeyboardArrowDown
-
-    Column(Modifier.padding(20.dp)) {
-        OutlinedTextField(
-            value = selectedItem,
-            onValueChange = { selectedItem = it },
-            modifier = Modifier
-                .fillMaxWidth(0.5f)
-                .onGloballyPositioned { coordinates ->
-                },
-            trailingIcon = {
-                Icon(icon,"contentDescription",
-                    Modifier.clickable { expanded = !expanded })
-            },
-            readOnly = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.None)
-        )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .fillMaxWidth(0.5f)
-        ) {
-            options.forEach { label ->
-                DropdownMenuItem(onClick = {
-                    selectedItem = label
-                    expanded = false
-                }) {
-                    Text(text = label)
-                }
-            }
+            Text(text = "Time")
         }
     }
 }
@@ -213,9 +170,13 @@ fun TaskCreator(addTask: (Task) -> Unit) {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
-        TasksDatePicker()
-        Spacer(modifier = Modifier.height(16.dp))
-        TasksTimePicker()
+        Row (
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ){
+            TasksDatePicker()
+            Spacer(modifier = Modifier.width(16.dp))
+            TasksTimePicker()
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
