@@ -8,4 +8,6 @@
 |2024/02/12  |  4.0   |        | 2.0    |        |  3.0    | 2.0    | Buddy Evaluation work
 |2024/02/16  |  6.0   |        |        |        |         |        | Create the navigation bar at the bottom of the screen
 |2024/02/16  |  8.0   |        |        |        |         | 10.0   | Worked on features to showcase for the prototype demo
-|2024/02/25  |        |        |        |        |  12.0   |        | Worked on features to showcase for the prototype demo
+|2024/02/25  |        |        | 2.0    |        |  12.0   |        | Worked on features to showcase for the prototype demo
+|2024/03/05  |        |        | 6.0    |        |         |        | Worked on features to showcase for the prototype demo
+
