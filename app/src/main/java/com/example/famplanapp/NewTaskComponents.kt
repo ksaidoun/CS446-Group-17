@@ -3,19 +3,16 @@ package com.example.famplanapp
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.DatePicker
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DropdownMenu
@@ -41,12 +38,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.compose.ui.window.Dialog
-import androidx.navigation.NavController
 import java.time.LocalDateTime
 import java.util.Calendar
 
@@ -63,7 +57,7 @@ fun ReadonlyOutlinedTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = modifier.width(150.dp),
+            modifier = modifier.width(120.dp),
             label = label,
 
             )
@@ -197,8 +191,9 @@ fun AssigneeDropdown(){
     }
 }
 
+
 @Composable
-fun TaskCreator(addTask: (Task) -> Unit) {
+fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
     val id = taskIdCount
     var title by remember { mutableStateOf("") }
     var dueDate = LocalDateTime.now()
@@ -229,6 +224,7 @@ fun TaskCreator(addTask: (Task) -> Unit) {
             label = { Text("Notes") },
             modifier = Modifier.fillMaxWidth()
         )
+        Spacer(modifier = Modifier.padding(top = 10.dp))
         Button(
             onClick = {
                 val task = Task(id = id, title = title, dueDate = dueDate, notes = notes)
@@ -239,14 +235,15 @@ fun TaskCreator(addTask: (Task) -> Unit) {
                 // later call a createTask function in model/viewmodel?
             },
 
-            modifier = Modifier.align(Alignment.End),
+            modifier = Modifier
+                .align(Alignment.End),
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = Color.White,
                 contentColor = Color(darkPurple)
             )
         ) {
             Text(
-                "Done",
+                "Create",
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -256,30 +253,3 @@ fun TaskCreator(addTask: (Task) -> Unit) {
     }
 }
 
-@Composable
-fun NewTaskDialog() {
-    var showDialog by remember { mutableStateOf(false) }
-
-    Column {
-        Button(onClick = { showDialog = true }) {
-            Text("Show Modal")
-        }
-
-        if (showDialog) {
-            Dialog(onDismissRequest = { showDialog = false }) {
-                // Content of the modal dialog
-                Box(
-                    modifier = Modifier
-                        .background(Color.White)
-                        .padding(16.dp)
-                ) {
-                    TaskCreator(addTask = { task -> tasksList.add(task)})
-                    Text("This is a modal dialog")
-                    Button(onClick = { showDialog = false }) {
-                        Text("Close")
-                    }
-                }
-            }
-        }
-    }
-}

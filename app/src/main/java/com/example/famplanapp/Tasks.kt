@@ -1,9 +1,6 @@
 package com.example.famplanapp
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
-import android.widget.DatePicker
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,59 +8,16 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import java.time.LocalDateTime
-import java.util.Calendar
+import androidx.compose.ui.window.Dialog
+import java.time.format.DateTimeFormatter
+import java.util.Date
 
-
-sealed class Routes(val route: String) {
-    object NewTask : Routes("TaskCreation")
-}
-
-@Composable
-fun Navigation(){
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Routes.NewTask.route) {
-        composable(Routes.NewTask.route) {
-            TasksCreation(navController = navController)
-        }
-    }
-}
-@Composable
-fun Tasks(navController: NavController) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("TEST ")
-        Button(
-            onClick = {
-                navController.navigate(Routes.NewTask.route)
-            },
-            modifier = Modifier.align(Alignment.End),
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = Color.White,
-                contentColor = Color(darkPurple)
-            )
-        ) {
-            Text(
-                "+",
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            )
-        }
-    }
-}
+var tasksList = mutableListOf<Task>()
 
 @Composable
 fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
@@ -77,12 +31,20 @@ fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
 
 @Composable
 fun TaskItem(task: Task, deleteTask: () -> Unit) {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+    val formattedDateTime = task.dueDate?.format(formatter)
+
     Card(
         backgroundColor = Color(lightPurple),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(task.title)
+            Text(
+                text = task.title,
+                style = TextStyle(fontSize = 20.sp)
+            )
+            Text(text = "Due: $formattedDateTime")
+            Text(text = "Assignee: ${task.assignee}")
             Text(task.notes)
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = deleteTask,
@@ -100,13 +62,50 @@ fun TaskItem(task: Task, deleteTask: () -> Unit) {
 
 @Composable
 fun Tasks(innerPadding: PaddingValues) {
-    val tasks = remember { mutableStateListOf<Task>() }
+    val tasks = remember { tasksList }
+    var showDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        TaskCreator(addTask = { task -> tasks.add(task)})
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TaskDisplayArea(tasks, deleteTask = { task -> tasks.remove(task) })
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Dropdown menu in the top left goes here
+            TaskDisplayArea(tasks, deleteTask = { task -> tasks.remove(task) })
+        }
+        // Button in the bottom right
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 80.dp, end = 16.dp)
+        ) {
+            OutlinedButton(
+                onClick = { showDialog = true }
+            ) {
+                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                Text("+")
+            }
+        }
+        if (showDialog) {
+            Dialog(onDismissRequest = { showDialog = false }) {
+                // Content of the modal dialog
+                Box(
+                    modifier = Modifier
+                        .background(Color.White)
+                    //.padding(16.dp)
+                ) {
+                    TaskCreator(addTask = { task -> tasksList.add(task) }, showDialog)
+                    Button(
+                        onClick = { showDialog = false },
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(bottom = 10.dp, start = 16.dp)
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
     }
 }
