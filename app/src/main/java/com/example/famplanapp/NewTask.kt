@@ -3,6 +3,7 @@ package com.example.famplanapp
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.widget.DatePicker
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -31,25 +34,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import java.time.LocalDateTime
 import java.util.Calendar
 
-class TasksCreation(navController: NavController) {
-}
-
-
 var taskIdCount = 1
-
-
 @Composable
 fun ReadonlyOutlinedTextField(
     value: String,
@@ -108,7 +109,7 @@ fun TasksDatePicker(): LocalDateTime? {
             onValueChange = { selectedDateText = it },
             onClick = {
                 datePicker.show()
-            }
+            },
         ) {
             Text(text = "Due Date")
         }
@@ -146,6 +147,57 @@ fun TasksTimePicker() {
 }
 
 @Composable
+fun AssigneeDropdown(){
+    // expanded state of the Text Field
+    var expanded by remember { mutableStateOf(false) }
+    // temporary list of options, eventually use list of users
+    val assignees = listOf("None", "Dad", "Mom", "Sister", "Brother", "Me")
+    var selectedAssignee by remember { mutableStateOf("Me") }
+    var textFieldSize by remember { mutableStateOf(Size.Zero)}
+    // Up Icon when expanded and down icon when collapsed
+    val icon = if (expanded)
+        Icons.Filled.KeyboardArrowUp
+    else
+        Icons.Filled.KeyboardArrowDown
+
+    Column() {
+        // Create an Outlined Text Field
+        // with icon and not expanded
+        OutlinedTextField(
+            value = selectedAssignee,
+            onValueChange = { selectedAssignee = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    // This value is used to assign to
+                    // the DropDown the same width
+                    textFieldSize = coordinates.size.toSize()
+                },
+            label = {Text("Assignee")},
+            trailingIcon = {
+                Icon(icon,"contentDescription",
+                    Modifier.clickable { expanded = !expanded })
+            }
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .width(with(LocalDensity.current){textFieldSize.width.toDp()})
+        ) {
+            assignees.forEach { label ->
+                DropdownMenuItem(onClick = {
+                    selectedAssignee = label
+                    expanded = false
+                }) {
+                    Text(text = label)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun TaskCreator(addTask: (Task) -> Unit) {
     val id = taskIdCount
     var title by remember { mutableStateOf("") }
@@ -160,15 +212,6 @@ fun TaskCreator(addTask: (Task) -> Unit) {
             label = { Text("Title") },
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = notes,
-            onValueChange = { notes = it },
-            label = { Text("Notes") },
-            modifier = Modifier.fillMaxWidth()
-        )
         Spacer(modifier = Modifier.height(16.dp))
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -178,6 +221,14 @@ fun TaskCreator(addTask: (Task) -> Unit) {
             TasksTimePicker()
         }
         Spacer(modifier = Modifier.height(16.dp))
+        AssigneeDropdown()
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = notes,
+            onValueChange = { notes = it },
+            label = { Text("Notes") },
+            modifier = Modifier.fillMaxWidth()
+        )
         Button(
             onClick = {
                 val task = Task(id = id, title = title, dueDate = dueDate, notes = notes)
@@ -195,12 +246,40 @@ fun TaskCreator(addTask: (Task) -> Unit) {
             )
         ) {
             Text(
-                "Create Task",
+                "Done",
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
             )
+        }
+    }
+}
+
+@Composable
+fun NewTaskDialog() {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Column {
+        Button(onClick = { showDialog = true }) {
+            Text("Show Modal")
+        }
+
+        if (showDialog) {
+            Dialog(onDismissRequest = { showDialog = false }) {
+                // Content of the modal dialog
+                Box(
+                    modifier = Modifier
+                        .background(Color.White)
+                        .padding(16.dp)
+                ) {
+                    TaskCreator(addTask = { task -> tasksList.add(task)})
+                    Text("This is a modal dialog")
+                    Button(onClick = { showDialog = false }) {
+                        Text("Close")
+                    }
+                }
+            }
         }
     }
 }
