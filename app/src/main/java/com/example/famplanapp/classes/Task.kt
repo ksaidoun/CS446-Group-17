@@ -1,4 +1,4 @@
-package com.example.famplanapp
+package com.example.famplanapp.classes
 import java.time.LocalDateTime
 
 data class Task(
