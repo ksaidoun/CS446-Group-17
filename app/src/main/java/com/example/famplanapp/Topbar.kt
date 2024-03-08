@@ -23,7 +23,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.famplanapp.R
-
+/*
 @Composable
 fun ScrollableTopAppBarExample() {
     val viewModel = remember { ExampleViewModel() }
@@ -51,7 +51,9 @@ fun ScrollableTopAppBarExample() {
     }
 }
 
+ */
 
+/*
 @Composable
 fun ScrollableAppBar(
     title: String,
@@ -96,3 +98,4 @@ class ExampleViewModel : ViewModel() {
         lastScrollIndex = newScrollIndex
     }
 }
+*/
