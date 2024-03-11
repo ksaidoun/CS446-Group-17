@@ -60,24 +60,22 @@ data class Poll(
     val deadline: LocalDateTime
 )
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PollCard(poll: Poll) {
+
     // Calculate the time left until the deadline
     val timeLeft = Duration.between(LocalDateTime.now(), poll.deadline)
-    val formattedTimeLeft = if (!timeLeft.isNegative) {
-        "${timeLeft.toHours()}h left"
-    } else {
-        "Poll ended"
-        /* TODO: Add more logic here (grey out poll card or something) */
-    }
+
+    // colors for active vs inactive polls
+    val backgroundColor = if (timeLeft.isNegative) Color.LightGray else Color(lightPurple)
+    val contentColor = if (timeLeft.isNegative) Color.DarkGray else Color(darkPurple)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp, 20.dp, 20.dp, 0.dp),
         elevation = 4.dp,
-        backgroundColor = Color(lightPurple),
+        backgroundColor = backgroundColor,
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -87,22 +85,29 @@ fun PollCard(poll: Poll) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+                // owner of poll
                 Text(
                     text = "From ${poll.owner}:",
-                    style = MaterialTheme.typography.subtitle2
-                )
-                Text(
-                    text = formattedTimeLeft,
                     style = MaterialTheme.typography.subtitle2,
+                    color = contentColor
+                )
+
+                // time left to vote
+                Text(
+                    text = if (timeLeft.isNegative) "Poll ended" else "${Duration.between(LocalDateTime.now(), poll.deadline).toHours()}h left",
+                    style = MaterialTheme.typography.subtitle2,
+                    color = contentColor,
                     textAlign = TextAlign.End
                 )
             }
 
+            // poll title
             Text(text = poll.subject,
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp,
-                    color = Color(darkPurple),
+                    color = contentColor,
                     textAlign = TextAlign.Center
                 ),
                 modifier = Modifier
@@ -110,13 +115,16 @@ fun PollCard(poll: Poll) {
                     .padding(vertical = 8.dp),
             )
 
+            // poll option buttons
             poll.options.forEach { option ->
                 Button(
                     onClick = { /* TODO: Implement vote action */ },
-
+                    enabled = !timeLeft.isNegative,
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.White,
-                        contentColor = Color(darkPurple)
+                        contentColor = contentColor,
+                        disabledBackgroundColor = Color.White,
+                        disabledContentColor = contentColor
                     ),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
@@ -141,10 +149,14 @@ val samplePosts = listOf(
         listOf(PollOption("Chili with rice"), PollOption("Chicken stir fry"),
             PollOption("Something else"), PollOption("Another option")),
         LocalDateTime.now().plusDays(1)), // Poll ends in 1 day
+    Poll(2,  "Dad","Poll question?",
+        listOf(PollOption("Option A"), PollOption("Option B"),
+            PollOption("Option C"), PollOption("Option D"), PollOption("Option E")),
+        LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours,
     Poll(2,  "Michael","How should we spend Family Day 2024?",
         listOf(PollOption("Go skiing"), PollOption("Go to Niagara Falls"),
             PollOption("Watch a movie")),
-        LocalDateTime.now().plusHours(12)) // Poll ends in 12 hours
+        LocalDateTime.now().minusHours(12)) // Poll ends in 12 hours
 )
 
 @Composable
@@ -152,7 +164,7 @@ fun PollList(polls: List<Poll>) {
     val backgroundColor = Color(darkPurple)
 
     Surface(color = backgroundColor, modifier = Modifier.fillMaxSize()) {
-        LazyColumn {
+        LazyColumn(modifier = Modifier.padding(bottom = 70.dp)) {
             items(polls) { poll ->
                 PollCard(poll = poll)
             }
