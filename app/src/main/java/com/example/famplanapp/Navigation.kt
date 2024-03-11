@@ -92,8 +92,48 @@ fun BottomNavBar(){
                 Tasks(innerPadding)
             }
             composable("Voting") {
+                var showPollCreationDialog by remember { mutableStateOf(false) }
+
                 // Screen content for Voting
-                PollList(samplePosts)
+                Box(modifier = Modifier.fillMaxSize()) {
+
+                    PollList(samplePosts)
+
+                    Box(
+                        modifier = Modifier
+                            .padding(16.dp, 76.dp)
+                            .size(56.dp)
+                            .background(MaterialTheme.colors.primary, CircleShape)
+                            .clickable { showPollCreationDialog = true }
+                            .align(Alignment.BottomEnd)
+                    ) {
+                        Text(
+                            text = "+",
+                            style = TextStyle(
+                                color = MaterialTheme.colors.background,
+                                fontSize = 24.sp
+                            ),
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
+                if (showPollCreationDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showPollCreationDialog = false },
+                        text = {
+                            PollCreationScreen(onPollCreated = { poll ->
+                                // TODO: Handle the created poll (e.g., add it to your list of polls)
+                                showPollCreationDialog = false
+                            })
+                        },
+                        confirmButton = {},
+                        dismissButton = {
+                            Button(onClick = { showPollCreationDialog = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
+                }
             }
             composable("Gallery") {
                 // Screen content for Gallery
