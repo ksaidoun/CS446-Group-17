@@ -40,6 +40,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+//import androidx.compose.foundation.layout.BoxScopeInstance.align
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.graphics.graphicsLayer
@@ -62,6 +63,7 @@ fun BottomNavBar(){
     }
 
     val navController = rememberNavController()
+    var menuExpanded by remember { mutableStateOf(false) }
 
     val navItems = listOf(
         //NavItem("Home", Icons.Default.Home),
@@ -134,6 +136,17 @@ fun BottomNavBar(){
                     }
                 },
                 actions = {
+                    // Show dropdown menu when R.drawable.person icon is clicked
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.person),
+                            contentDescription = "Settings Icon",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                },
+                /*
+                actions = {
                     if (R.drawable.person != null) {
                         IconButton(onClick = {
                             navController.navigate("Setting") {
@@ -152,6 +165,8 @@ fun BottomNavBar(){
                         }
                     }
                 },
+
+                 */
                 modifier = Modifier.fillMaxWidth()
             )
         },
@@ -225,6 +240,25 @@ fun BottomNavBar(){
                 Setting(innerPadding)
                 // Screen content for Setting
             }
+        }
+        DropdownMenu(
+            expanded = menuExpanded,
+            onDismissRequest = { menuExpanded = false },
+            //modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            DropdownMenuItem(onClick = {
+                // Handle click on dropdown item 1
+                menuExpanded = false
+            }) {
+                Text("Dropdown Item 1")
+            }
+            DropdownMenuItem(onClick = {
+                // Handle click on dropdown item 2
+                menuExpanded = false
+            }) {
+                Text("Dropdown Item 2")
+            }
+            // Add more dropdown items as needed
         }
     }
 }
