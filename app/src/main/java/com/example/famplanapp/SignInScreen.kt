@@ -1,3 +1,6 @@
+import android.content.ContentValues.TAG
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,12 +14,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 //import com.example.famplanapp.BottomNavBar
 import com.example.famplanapp.*
 import com.example.famplanapp.R
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun SignInButton(onClickAction: () -> Unit) {
@@ -27,6 +32,9 @@ fun SignInButton(onClickAction: () -> Unit) {
 
 @Composable
 fun SignInScreen() {
+    val auth = FirebaseAuth.getInstance()
+    val context = LocalContext.current
+
     var buttonClicked by remember { mutableStateOf(false) }
     var usernameText by remember { mutableStateOf("") }
     var passwordText by remember { mutableStateOf("") }
@@ -67,7 +75,18 @@ fun SignInScreen() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             SignInButton {
-                buttonClicked = true
+                auth.signInWithEmailAndPassword(usernameText, passwordText)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            buttonClicked = true
+                        } else {
+                            Log.w(TAG, "signInWithEmail:failure", task.exception)
+                            Toast.makeText(
+                                context, "Authentication failed.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
             }
         }
     }
