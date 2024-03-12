@@ -1,3 +1,5 @@
+package com.example.famplanapp.gallery
+
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
@@ -32,7 +34,7 @@ import java.io.IOException
 import java.time.LocalDate
 
 @Composable
-fun PhotoGallery(photos: List<Int>) {
+fun DefaultPhotoGallery(photos: List<Int>) {
     var selectedPhoto by remember { mutableStateOf<Int?>(null) }
 
     LazyColumn(
@@ -150,6 +152,7 @@ fun FullSizeImageModal(photoResId: Int, onClose: () -> Unit) {
         sheetState = sheetState,
         sheetShape = MaterialTheme.shapes.large,
         sheetBackgroundColor = Color.Transparent,
+        sheetElevation = 16.dp,
         scrimColor = Color.Black.copy(alpha = 0.6f)
     ) {
     }

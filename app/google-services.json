@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "485630814169",
+    "project_id": "famplan-446",
+    "storage_bucket": "famplan-446.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:485630814169:android:1e56c09d1b775377201bc8",
+        "android_client_info": {
+          "package_name": "com.example.famplanapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbxNSIGptIYOqtUe1n7aio-eTGZV0I1xg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,7 +1,6 @@
 package com.example.famplanapp
 
 
-import PhotoGallery
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateFloatAsState
@@ -32,9 +31,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -45,22 +41,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.famplanapp.gallery.Gallery
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BottomNavBar(){
     val photos = mutableListOf<Int>()
-    repeat(5) {
-        photos.addAll(listOf(
-            R.drawable.test1,
-            R.drawable.test2,
-            R.drawable.test3,
-            R.drawable.test4
-        ))
-    }
+    photos.addAll(listOf(
+        R.drawable.test1,
+        R.drawable.test2,
+        R.drawable.test3,
+        R.drawable.test4
+    ))
 
     val navController = rememberNavController()
     var menuExpanded by remember { mutableStateOf(false) }
@@ -212,29 +208,7 @@ fun BottomNavBar(){
             }
             composable("Gallery") {
                 // Screen content for Gallery
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 60.dp, bottom = 60.dp)) {
-                    Gallery(photos)
-
-                    Box(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .size(56.dp)
-                            .background(MaterialTheme.colors.primary, CircleShape)
-                            .clickable {
-                                photos.add(R.drawable.test1)
-                                navController.navigate("Gallery")
-                            }
-                            .align(Alignment.BottomEnd)
-                    ) {
-                        Text(
-                            text = "+",
-                            style = TextStyle(color = MaterialTheme.colors.background, fontSize = 24.sp),
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
-                }
+                Gallery(photos)
             }
             composable("Setting") {
                 Setting(innerPadding)
@@ -261,11 +235,6 @@ fun BottomNavBar(){
             // Add more dropdown items as needed
         }
     }
-}
-
-@Composable
-fun Gallery(photos: List<Int>) {
-    PhotoGallery(photos = photos)
 }
 
 data class NavItem(val title: String, val icon: ImageVector)
