@@ -1,4 +1,4 @@
-package com.example.famplanapp
+package com.example.famplanapp.tasks
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import com.example.famplanapp.darkPurple
 import java.time.LocalDateTime
 import java.util.Calendar
 
@@ -71,7 +73,7 @@ fun ReadonlyOutlinedTextField(
 }
 
 @Composable
-fun TasksDatePicker(): LocalDateTime? {
+fun TasksDatePicker(defaultText: String): LocalDateTime? {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
@@ -80,6 +82,10 @@ fun TasksDatePicker(): LocalDateTime? {
     val month = calendar[Calendar.MONTH]
     val day = calendar[Calendar.DAY_OF_MONTH]
 
+    var newYear by remember { mutableIntStateOf(year) }
+    var newMonth by remember { mutableIntStateOf(month) }
+    var newDay by remember { mutableIntStateOf(day) }
+
     var selectedDateText by remember { mutableStateOf("") }
 
     val datePicker =
@@ -87,6 +93,9 @@ fun TasksDatePicker(): LocalDateTime? {
             context,
             { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
                 selectedDateText = "$selectedDay/${selectedMonth + 1}/$selectedYear"
+                newYear = selectedYear
+                newMonth = selectedMonth + 1
+                newDay = selectedDay
             },
             year,
             month,
@@ -105,14 +114,14 @@ fun TasksDatePicker(): LocalDateTime? {
                 datePicker.show()
             },
         ) {
-            Text(text = "Due Date")
+            Text(text = defaultText)
         }
     }
-    return LocalDateTime.of(year, month, day, 0, 0)
+    return LocalDateTime.of(newYear, newMonth, newDay, 0, 0)
 }
 
 @Composable
-fun TasksTimePicker() {
+fun TasksTimePicker(): Pair<Int, Int> {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
     var selectedTimeText by remember { mutableStateOf("") }
@@ -138,6 +147,7 @@ fun TasksTimePicker() {
             Text(text = "Time")
         }
     }
+    return Pair(hour, minute)
 }
 
 @Composable
@@ -196,11 +206,17 @@ fun AssigneeDropdown(){
 fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
     val id = taskIdCount
     var title by remember { mutableStateOf("") }
-    var dueDate = LocalDateTime.now()
+    var dueDate: LocalDateTime? = null
+    var remindTime: LocalDateTime? = null
     var notes by remember { mutableStateOf("") }
+    var isCompleted = false
     taskIdCount++
+
+    var dueTime = Pair(0, 0)
+    var reminderTime = Pair(0, 0)
     Column(
         modifier = Modifier.padding(16.dp)) {
+        // Title field
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
@@ -208,12 +224,24 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
+        // Due date fields
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            TasksDatePicker()
+            dueDate = TasksDatePicker("Due Date")
             Spacer(modifier = Modifier.width(16.dp))
-            TasksTimePicker()
+            dueTime = TasksTimePicker()
+            dueDate = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        // Remind time fields
+        Row (
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ){
+            remindTime = TasksDatePicker("Reminder")
+            Spacer(modifier = Modifier.width(16.dp))
+            reminderTime = TasksTimePicker()
+            remindTime = remindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
         }
         Spacer(modifier = Modifier.height(16.dp))
         AssigneeDropdown()
@@ -227,12 +255,13 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
         Spacer(modifier = Modifier.padding(top = 10.dp))
         Button(
             onClick = {
-                val task = Task(id = id, title = title, dueDate = dueDate, notes = notes)
+                val task = Task(id = id, title = title, dueDate = dueDate, remindTime = remindTime, notes = notes, isCompleted = isCompleted)
                 addTask(task)
                 title = ""
                 dueDate = LocalDateTime.now()
+                remindTime = LocalDateTime.now()
                 notes = ""
-                // later call a createTask function in model/viewmodel?
+                isCompleted = false
             },
 
             modifier = Modifier

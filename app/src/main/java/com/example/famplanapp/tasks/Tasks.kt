@@ -1,6 +1,7 @@
-package com.example.famplanapp
+package com.example.famplanapp.tasks
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,8 +15,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.famplanapp.darkPurple
+import com.example.famplanapp.lightPurple
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Date
+
 
 var tasksList = mutableListOf<Task>()
 
@@ -23,9 +27,68 @@ var tasksList = mutableListOf<Task>()
 fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(tasks){task ->
-            TaskItem(task, deleteTask = { deleteTask(task) })
+            TodoItemRow(task, deleteTask = { deleteTask(task) })
             Spacer(modifier = Modifier.height(8.dp))
         }
+    }
+}
+@Composable
+fun TodoItemRow(task: Task, deleteTask: () -> Unit) {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+    val formattedDateTime = task.dueDate?.format(formatter)
+    val currentDateTime = LocalDateTime.now()
+    val textColor = if (task.dueDate != null && task.dueDate!!.isBefore(currentDateTime)) {
+                        Color.Red
+                    } else {
+                        Color.Black
+                    }
+    val checkedState = remember { mutableStateOf(task.isCompleted) }
+    Column(
+
+        modifier = Modifier
+            .clickable {
+
+            }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Checkbox(
+                checked = checkedState.value,
+                onCheckedChange = { checkedState.value = it },
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = task.title,
+                    style = TextStyle(fontSize = 16.sp),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+                Text(
+                    text = "Due $formattedDateTime",
+                    style = TextStyle(fontSize = 16.sp),
+                    color = textColor,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
+        }
+        Text(
+            text = "Assignee: ${task.assignee}",
+            style = TextStyle(fontSize = 16.sp),
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        Text(
+            text = task.notes,
+            style = TextStyle(fontSize = 16.sp),
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
     }
 }
 
@@ -33,16 +96,23 @@ fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
 fun TaskItem(task: Task, deleteTask: () -> Unit) {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     val formattedDateTime = task.dueDate?.format(formatter)
-
+    val checkedState = remember { mutableStateOf(task.isCompleted) }
     Card(
         backgroundColor = Color(lightPurple),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = task.title,
-                style = TextStyle(fontSize = 20.sp)
-            )
+            Row(){
+                Checkbox(
+                    checked = checkedState.value,
+                    onCheckedChange = { checkedState.value = it },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                Text(
+                    text = task.title,
+                    style = TextStyle(fontSize = 20.sp)
+                )
+            }
             Text(text = "Due: $formattedDateTime")
             Text(text = "Assignee: ${task.assignee}")
             Text(task.notes)
