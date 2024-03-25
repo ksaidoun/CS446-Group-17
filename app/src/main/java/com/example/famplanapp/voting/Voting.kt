@@ -1,4 +1,4 @@
-package com.example.famplanapp
+package com.example.famplanapp.voting
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -26,6 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.famplanapp.darkPurple
+import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.lightPurple
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -35,13 +38,7 @@ data class PollOption(
     val option: String,
     var votes: Int = 0
 )
-data class Poll(
-    val id: Int,
-    val owner: String, // should be User object eventually
-    val subject: String,
-    val options: List<PollOption>,
-    val deadline: LocalDateTime
-)
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -71,7 +68,7 @@ fun PollCard(poll: Poll) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "From ${poll.owner}:",
+                    text = "From ${poll.owner.name}:",
                     style = MaterialTheme.typography.subtitle2
                 )
                 Text(
@@ -121,13 +118,17 @@ fun PollCard(poll: Poll) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 val samplePosts = listOf(
-    Poll(1, "Julia","What should we have for dinner tonight?",
-        listOf(PollOption("Chili with rice"), PollOption("Chicken stir fry"),
-            PollOption("Something else"), PollOption("Another option")),
+    Poll(1, User("Julia"),"What should we have for dinner tonight?",
+        listOf(
+            PollOption("Chili with rice"), PollOption("Chicken stir fry"),
+            PollOption("Something else"), PollOption("Another option")
+        ),
         LocalDateTime.now().plusDays(1)), // Poll ends in 1 day
-    Poll(2,  "Michael","How should we spend Family Day 2024?",
-        listOf(PollOption("Go skiing"), PollOption("Go to Niagara Falls"),
-            PollOption("Watch a movie")),
+    Poll(2,  User("Michael"),"How should we spend Family Day 2024?",
+        listOf(
+            PollOption("Go skiing"), PollOption("Go to Niagara Falls"),
+            PollOption("Watch a movie")
+        ),
         LocalDateTime.now().plusHours(12)) // Poll ends in 12 hours
 )
 

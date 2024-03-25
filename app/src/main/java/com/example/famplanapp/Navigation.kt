@@ -19,7 +19,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.famplanapp.gallery.Gallery
+import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Tasks
+import com.example.famplanapp.voting.PollList
+import com.example.famplanapp.voting.samplePosts
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
