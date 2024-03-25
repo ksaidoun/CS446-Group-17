@@ -46,7 +46,7 @@ import com.example.famplanapp.darkPurple
 import java.time.LocalDateTime
 import java.util.Calendar
 
-var taskIdCount = 1
+var taskIdCount = 0
 @Composable
 fun ReadonlyOutlinedTextField(
     value: String,
@@ -281,4 +281,84 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
         }
     }
 }
+
+
+@Composable
+fun TaskEditor(task: Task, showDialog: Boolean) {
+    var newTitle by remember { mutableStateOf(task.title) }
+    var newDueDate by remember { mutableStateOf(task.dueDate) }
+    var newRemindTime by remember { mutableStateOf(task.remindTime) }
+    var newNotes by remember { mutableStateOf(task.notes) }
+    var newIsCompleted by remember { mutableStateOf(task.isCompleted) }
+    val currDueDateText = "${task.dueDate?.dayOfMonth}/${task.dueDate?.month?.value}/${task.dueDate?.year}"
+    val currRemindDateText = "${task.remindTime?.dayOfMonth}/${task.remindTime?.month?.value}/${task.remindTime?.year}"
+
+    var dueTime = Pair(0, 0)
+    var reminderTime = Pair(0, 0)
+    Column(
+        modifier = Modifier.padding(16.dp)) {
+        // Title field
+        OutlinedTextField(
+            value = newTitle,
+            onValueChange = { newTitle = it },
+            label = { Text("Title") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        // Due date fields
+        Row (
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ){
+            newDueDate = TasksDatePicker(currDueDateText)
+            Spacer(modifier = Modifier.width(16.dp))
+            dueTime = TasksTimePicker()
+            newDueDate = newDueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        // Remind time fields
+        Row (
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ){
+            newRemindTime = TasksDatePicker(currRemindDateText)
+            Spacer(modifier = Modifier.width(16.dp))
+            reminderTime = TasksTimePicker()
+            newRemindTime = newRemindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        AssigneeDropdown()
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = newNotes,
+            onValueChange = { newNotes = it },
+            label = { Text("Notes") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.padding(top = 10.dp))
+        Button(
+            onClick = {
+                task.title = newTitle
+                task.dueDate = newDueDate
+                task.remindTime = newRemindTime
+                task.notes = newNotes
+                task.isCompleted = newIsCompleted
+            },
+
+            modifier = Modifier
+                .align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.White,
+                contentColor = Color(darkPurple)
+            )
+        ) {
+            Text(
+                "Update",
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            )
+        }
+    }
+}
+
 
