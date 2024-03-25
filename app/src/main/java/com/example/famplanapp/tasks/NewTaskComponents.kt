@@ -43,8 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.example.famplanapp.darkPurple
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.util.Calendar
+import java.util.Locale
 
 var taskIdCount = 0
 @Composable
@@ -73,26 +75,27 @@ fun ReadonlyOutlinedTextField(
 }
 
 @Composable
-fun TasksDatePicker(defaultText: String): LocalDateTime? {
+fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDateTime? {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
+    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
+    var selectedDateText by remember { mutableStateOf("") }
 
     // getting today's date fields
-    val year = calendar[Calendar.YEAR]
-    val month = calendar[Calendar.MONTH]
-    val day = calendar[Calendar.DAY_OF_MONTH]
+    var year = calendar[Calendar.YEAR]
+    var month = calendar[Calendar.MONTH]
+    var day = calendar[Calendar.DAY_OF_MONTH]
 
     var newYear by remember { mutableIntStateOf(year) }
     var newMonth by remember { mutableIntStateOf(month) }
     var newDay by remember { mutableIntStateOf(day) }
 
-    var selectedDateText by remember { mutableStateOf("") }
-
     val datePicker =
         DatePickerDialog(
             context,
             { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
-                selectedDateText = "$selectedDay/${selectedMonth + 1}/$selectedYear"
+                selectedDate.set(selectedYear, selectedMonth, selectedDay)
+                selectedDateText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)
                 newYear = selectedYear
                 newMonth = selectedMonth + 1
                 newDay = selectedDay
@@ -101,6 +104,7 @@ fun TasksDatePicker(defaultText: String): LocalDateTime? {
             month,
             day,
         )
+    datePicker.updateDate(newYear, newMonth, newDay)
     // can't pick dates in the past
     datePicker.datePicker.minDate = calendar.timeInMillis
 
@@ -228,7 +232,7 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            dueDate = TasksDatePicker("Due Date")
+            dueDate = TasksDatePicker("Due Date", null)
             Spacer(modifier = Modifier.width(16.dp))
             dueTime = TasksTimePicker()
             dueDate = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
@@ -238,7 +242,7 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            remindTime = TasksDatePicker("Reminder")
+            remindTime = TasksDatePicker("Reminder", null)
             Spacer(modifier = Modifier.width(16.dp))
             reminderTime = TasksTimePicker()
             remindTime = remindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
@@ -309,7 +313,7 @@ fun TaskEditor(task: Task, showDialog: Boolean) {
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            newDueDate = TasksDatePicker(currDueDateText)
+            newDueDate = TasksDatePicker("Due Date", task.dueDate)
             Spacer(modifier = Modifier.width(16.dp))
             dueTime = TasksTimePicker()
             newDueDate = newDueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
@@ -319,7 +323,7 @@ fun TaskEditor(task: Task, showDialog: Boolean) {
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            newRemindTime = TasksDatePicker(currRemindDateText)
+            newRemindTime = TasksDatePicker("Reminder", task.dueDate)
             Spacer(modifier = Modifier.width(16.dp))
             reminderTime = TasksTimePicker()
             newRemindTime = newRemindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
