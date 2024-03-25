@@ -10,6 +10,7 @@
 |2024/02/16  |  8.0   |  2.0   |        |        |         | 10.0   | Worked on features to showcase for the prototype demo
 |2024/02/25  |        |  2.0   | 2.0    |        |  12.0   |        | Worked on features to showcase for the prototype demo
 |2024/03/05  |        |  3.0   | 6.0    |        |         |  2.0   | Worked on features to showcase for the prototype demo
-|2024/03/05  |        |  1.0   | 1.0    |        |         |  1.0   | Prototype Document work
+|2024/03/05  |  1.0   |  1.0   | 1.0    |        |         |  1.0   | Prototype Document work
 |2024/03/08  |        |        |        |        |         |  4.0   | Worked on features to showcase for the prototype demo
-
+|2024/03/18  |   1.5  |        |        |        |         |        | Worked on Architecture Style Examples document
+|2024/03/25  |   1.5  |        |        |        |         |        | Worked on Design Pattern Examples document
