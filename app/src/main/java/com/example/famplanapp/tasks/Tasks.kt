@@ -231,7 +231,7 @@ fun TaskItem(task: Task, deleteTask: () -> Unit) {
 }
 
 @Composable
-fun Tasks(innerPadding: PaddingValues, family: Family?) {
+fun Tasks(innerPadding: PaddingValues) {
     val tasks = remember { tasksList }
     var showDialog by remember { mutableStateOf(false) }
 

@@ -23,11 +23,23 @@ import com.example.famplanapp.globalClasses.AppSettings
 import com.example.famplanapp.globalClasses.Family
 import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.schedule.Schedule
-import com.example.famplanapp.tasks.Task
 import com.example.famplanapp.tasks.Tasks
 import com.example.famplanapp.tasks.tasksList
 import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.voting.samplePosts
+
+// TEST VALUES FOR USERS & FAMILY
+val tempSettings: AppSettings = AppSettings(false, "Push")
+val tempUser: User = User(
+    "David Smith",
+    "David",
+    "testemail@gmail.com",
+    tasksList,
+    "#dc143c",
+    "Admin",
+    tempSettings)
+var tempUsers: List<User> = listOf(tempUser)
+var family: Family = Family(1, tempSettings, tempUsers)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -41,19 +53,6 @@ fun BottomNavBar(){
     ))
 
     val navController = rememberNavController()
-
-    // TEST VALUES FOR USERS & FAMILY
-    val tempSettings: AppSettings = AppSettings(false, "Push")
-    val tempUser: User = User(
-        "David Smith",
-        "David",
-        "testemail@gmail.com",
-        tasksList,
-        "#dc143c",
-        "Admin",
-        tempSettings)
-    var tempUsers: List<User> = listOf(tempUser)
-    var family: Family? = Family(1, tempSettings, tempUsers)
 
     val navItems = listOf(
         NavItem("Home", Icons.Default.Home),
@@ -98,7 +97,7 @@ fun BottomNavBar(){
             }
             composable("Tasks") {
                 // Screen content for Tasks
-                Tasks(innerPadding, family)
+                Tasks(innerPadding)
             }
             composable("Voting") {
                 // Screen content for Voting
