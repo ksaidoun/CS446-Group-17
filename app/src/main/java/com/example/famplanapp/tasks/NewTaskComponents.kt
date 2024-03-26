@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 
@@ -85,6 +86,17 @@ fun ReadonlyOutlinedTextField(
     }
 }
 
+fun LocalDateTime.toCalendar(): Calendar {
+    val calendar = Calendar.getInstance()
+    calendar.set(Calendar.YEAR, this.year)
+    calendar.set(Calendar.MONTH, this.monthValue - 1) // Calendar months are zero-based
+    calendar.set(Calendar.DAY_OF_MONTH, this.dayOfMonth)
+    calendar.set(Calendar.HOUR_OF_DAY, this.hour)
+    calendar.set(Calendar.MINUTE, this.minute)
+    calendar.set(Calendar.SECOND, this.second)
+    calendar.set(Calendar.MILLISECOND, this.nano / 1000000)
+    return calendar
+}
 @Composable
 fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDateTime? {
     val context = LocalContext.current
@@ -101,6 +113,14 @@ fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDate
     var newMonth by remember { mutableIntStateOf(month) }
     var newDay by remember { mutableIntStateOf(day) }
 
+    if (defaultDate != null) {
+        newYear = defaultDate.year
+        newMonth = defaultDate.monthValue
+        newDay = defaultDate.dayOfMonth
+        selectedDate = defaultDate.toCalendar()
+        selectedDateText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)
+    }
+
     val datePicker =
         DatePickerDialog(
             context,
@@ -113,7 +133,7 @@ fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDate
             },
             year,
             month,
-            day,
+            day
         )
     datePicker.updateDate(newYear, newMonth, newDay)
     // can't pick dates in the past
@@ -134,21 +154,41 @@ fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDate
     }
     return LocalDateTime.of(newYear, newMonth, newDay, 0, 0)
 }
-
+/*
 @Composable
-fun TasksTimePicker(): Pair<Int, Int> {
+fun TasksTimePicker(defaultDate: LocalDateTime?): Pair<Int, Int> {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
+    var selectedTime by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedTimeText by remember { mutableStateOf("") }
+
     // get current hour and minute
     val hour = calendar[Calendar.HOUR_OF_DAY]
     val minute = calendar[Calendar.MINUTE]
+
+    var newHour by remember { mutableIntStateOf(hour) }
+    var newMinute by remember { mutableIntStateOf(minute) }
+
+    if (defaultDate != null) {
+        newHour = defaultDate.hour
+        newMinute = defaultDate.minute
+        selectedTime = defaultDate.toCalendar()
+        selectedTimeText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(selectedTime.time)
+    }
     val timePicker = TimePickerDialog(
         context,
         { _, selectedHour: Int, selectedMinute: Int ->
-            selectedTimeText = "$selectedHour:$selectedMinute"
-        }, hour, minute, false
+            selectedTime.set(selectedHour, selectedMinute)
+            newHour = selectedHour
+            newMinute = selectedMinute
+            selectedTimeText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(selectedTime.time)
+        },
+        hour,
+        minute,
+        false
     )
+    timePicker.updateTime(newHour, newMinute)
+
     Column(
         horizontalAlignment = Alignment.End
     ) {
@@ -162,18 +202,63 @@ fun TasksTimePicker(): Pair<Int, Int> {
             Text(text = "Time")
         }
     }
-    return Pair(hour, minute)
+    return Pair(newHour, newMinute)
+}
+*/
+
+@Composable
+fun TasksTimePicker(defaultDate: LocalDateTime?): Pair<Int, Int> {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    var selectedTimeText by remember { mutableStateOf("") }
+    // get current hour and minute
+    val hour = calendar[Calendar.HOUR_OF_DAY]
+    val minute = calendar[Calendar.MINUTE]
+
+    var newHour by remember { mutableIntStateOf(hour) }
+    var newMinute by remember { mutableIntStateOf(minute) }
+
+    if (defaultDate != null) {
+        newHour = defaultDate.hour
+        newMinute = defaultDate.minute
+        selectedTimeText = "$newHour:$newMinute"
+    }
+    val timePicker = TimePickerDialog(
+        context,
+        { _, selectedHour: Int, selectedMinute: Int ->
+            selectedTimeText = "$selectedHour:$selectedMinute"
+            newHour = selectedHour
+            newMinute - selectedMinute
+        }, hour, minute, false
+    )
+    timePicker.updateTime(newHour, newMinute)
+
+    Column(
+        horizontalAlignment = Alignment.End
+    ) {
+        ReadonlyOutlinedTextField(
+            value = selectedTimeText,
+            onValueChange = { selectedTimeText = it },
+            onClick = {
+                timePicker.show()
+            }
+        ) {
+            Text(text = "Time")
+        }
+    }
+    return Pair(newHour, newMinute)
 }
 
 @Composable
-fun AssigneeDropdown(): User {
+fun AssigneeDropdown(prevAssignee: User?): User {
     // expanded state of the Text Field
     var expanded by remember { mutableStateOf(false) }
     // temporary list of options, eventually use list of users
     val noneUser = User("None", "None")
-    var assignees = family.users.toMutableList()
-    assignees.add(noneUser)
+    var assignees = mutableListOf(noneUser)
+    assignees.addAll(family.users)
     var selectedAssignee by remember { mutableStateOf(assignees.first()) }
+    if (prevAssignee != null) selectedAssignee = prevAssignee
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
     // Up Icon when expanded and down icon when collapsed
     val icon = if (expanded)
@@ -248,7 +333,7 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
         ){
             dueDate = TasksDatePicker("Due Date", null)
             Spacer(modifier = Modifier.width(16.dp))
-            dueTime = TasksTimePicker()
+            dueTime = TasksTimePicker(null)
             dueDate = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -258,11 +343,11 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
         ){
             remindTime = TasksDatePicker("Reminder", null)
             Spacer(modifier = Modifier.width(16.dp))
-            reminderTime = TasksTimePicker()
+            reminderTime = TasksTimePicker(null)
             remindTime = remindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        assignee = AssigneeDropdown()
+        assignee = AssigneeDropdown(null)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = notes,
@@ -282,7 +367,7 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
                     notes = notes,
                     isCompleted = isCompleted
                 )
-                //addTask(task)
+                addTask(task)
                 if (task.assignee?.name != "None" || task.assignee != null) {
                     task.assignee?.tasks?.add(task)
                 }
@@ -356,7 +441,7 @@ fun TaskEditor(task: Task, showDialog: Boolean): Boolean {
         ){
             newDueDate = TasksDatePicker("Due Date", task.dueDate)
             Spacer(modifier = Modifier.width(16.dp))
-            dueTime = TasksTimePicker()
+            dueTime = TasksTimePicker(task.dueDate)
             newDueDate = newDueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -364,13 +449,13 @@ fun TaskEditor(task: Task, showDialog: Boolean): Boolean {
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            newRemindTime = TasksDatePicker("Reminder", task.dueDate)
+            newRemindTime = TasksDatePicker("Reminder", task.remindTime)
             Spacer(modifier = Modifier.width(16.dp))
-            reminderTime = TasksTimePicker()
+            reminderTime = TasksTimePicker(task.remindTime)
             newRemindTime = newRemindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        AssigneeDropdown()
+        AssigneeDropdown(task.assignee)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = newNotes,

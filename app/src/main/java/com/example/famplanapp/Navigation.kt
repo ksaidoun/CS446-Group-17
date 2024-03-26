@@ -23,8 +23,8 @@ import com.example.famplanapp.globalClasses.AppSettings
 import com.example.famplanapp.globalClasses.Family
 import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.schedule.Schedule
+import com.example.famplanapp.tasks.Task
 import com.example.famplanapp.tasks.Tasks
-import com.example.famplanapp.tasks.tasksList
 import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.voting.samplePosts
 
@@ -34,7 +34,7 @@ val tempUser: User = User(
     "David Smith",
     "David",
     "testemail@gmail.com",
-    tasksList,
+    mutableListOf<Task>(),
     "#dc143c",
     "Admin",
     tempSettings)
