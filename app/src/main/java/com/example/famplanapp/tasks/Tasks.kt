@@ -1,10 +1,13 @@
 package com.example.famplanapp.tasks
 
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -89,11 +92,11 @@ fun FilterDropdown(){
 fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<Task?>(null) }
-    Spacer(modifier = Modifier.height(80.dp))
+    Spacer(modifier = Modifier.height(70.dp))
     FilterDropdown()
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(tasks){task ->
-            ToDoItem(task) { clickedIndex ->
+            ToDoItem(task) {
                 selectedTask = task
                 showDialog = true
             }
@@ -108,7 +111,8 @@ fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
                     .background(Color.White)
                 //.padding(16.dp)
             ) {
-                TaskEditor(selectedTask!!, showDialog)
+                val returned = TaskEditor(selectedTask!!, showDialog)
+                if (returned) showDialog = false
                 Button(
                     onClick = { showDialog = false },
                     modifier = Modifier
@@ -179,7 +183,7 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
             }
         }
         Text(
-            text = "Assignee: ${task.assignee}",
+            text = "Assignee: ${task.assignee?.preferredName}",
             style = TextStyle(fontSize = 16.sp),
             modifier = Modifier.padding(start = 16.dp)
         )
@@ -189,44 +193,6 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
             style = TextStyle(fontSize = 16.sp),
             modifier = Modifier.padding(start = 16.dp)
         )
-    }
-}
-
-@Composable
-fun TaskItem(task: Task, deleteTask: () -> Unit) {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-    val formattedDateTime = task.dueDate?.format(formatter)
-    val checkedState = remember { mutableStateOf(task.isCompleted) }
-    Card(
-        backgroundColor = Color(lightPurple),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(){
-                Checkbox(
-                    checked = checkedState.value,
-                    onCheckedChange = { checkedState.value = it },
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                Text(
-                    text = task.title,
-                    style = TextStyle(fontSize = 20.sp)
-                )
-            }
-            Text(text = "Due: $formattedDateTime")
-            Text(text = "Assignee: ${task.assignee}")
-            Text(task.notes)
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = deleteTask,
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White,
-                    contentColor = Color(darkPurple))
-                ) {
-                Text("Delete", style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                ))
-            }
-        }
     }
 }
 
@@ -249,13 +215,17 @@ fun Tasks(innerPadding: PaddingValues) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 80.dp, end = 16.dp)
+                .size(56.dp)
+                .background(MaterialTheme.colors.primary, CircleShape)
+                .clickable {
+                    showDialog = true
+                }
         ) {
-            OutlinedButton(
-                onClick = { showDialog = true }
-            ) {
-                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                Text("+")
-            }
+            Text(
+                text = "+",
+                style = TextStyle(color = MaterialTheme.colors.background, fontSize = 24.sp),
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
         if (showDialog) {
             Dialog(onDismissRequest = { showDialog = false }) {

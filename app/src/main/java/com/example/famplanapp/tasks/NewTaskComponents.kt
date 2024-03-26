@@ -2,7 +2,9 @@ package com.example.famplanapp.tasks
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
 import android.widget.DatePicker
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,16 +20,20 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +49,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.example.famplanapp.darkPurple
+import com.example.famplanapp.family
+import com.example.famplanapp.globalClasses.User
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.util.Calendar
@@ -155,12 +166,14 @@ fun TasksTimePicker(): Pair<Int, Int> {
 }
 
 @Composable
-fun AssigneeDropdown(){
+fun AssigneeDropdown(): User {
     // expanded state of the Text Field
     var expanded by remember { mutableStateOf(false) }
     // temporary list of options, eventually use list of users
-    val assignees = listOf("None", "Dad", "Mom", "Sister", "Brother", "Me")
-    var selectedAssignee by remember { mutableStateOf("Me") }
+    val noneUser = User("None", "None")
+    var assignees = family.users.toMutableList()
+    assignees.add(noneUser)
+    var selectedAssignee by remember { mutableStateOf(assignees.first()) }
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
     // Up Icon when expanded and down icon when collapsed
     val icon = if (expanded)
@@ -172,13 +185,11 @@ fun AssigneeDropdown(){
         // Create an Outlined Text Field
         // with icon and not expanded
         OutlinedTextField(
-            value = selectedAssignee,
-            onValueChange = { selectedAssignee = it },
+            value = selectedAssignee.preferredName,
+            onValueChange = {  },
             modifier = Modifier
                 .fillMaxWidth()
                 .onGloballyPositioned { coordinates ->
-                    // This value is used to assign to
-                    // the DropDown the same width
                     textFieldSize = coordinates.size.toSize()
                 },
             label = {Text("Assignee")},
@@ -193,16 +204,17 @@ fun AssigneeDropdown(){
             modifier = Modifier
                 .width(with(LocalDensity.current){textFieldSize.width.toDp()})
         ) {
-            assignees.forEach { label ->
+            assignees.forEach { user ->
                 DropdownMenuItem(onClick = {
-                    selectedAssignee = label
+                    selectedAssignee = user
                     expanded = false
                 }) {
-                    Text(text = label)
+                    Text(text = user.preferredName)
                 }
             }
         }
     }
+    return selectedAssignee
 }
 
 
@@ -212,12 +224,14 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
     var title by remember { mutableStateOf("") }
     var dueDate: LocalDateTime? = null
     var remindTime: LocalDateTime? = null
+    var assignee: User? by remember { mutableStateOf(null) }
     var notes by remember { mutableStateOf("") }
     var isCompleted = false
     taskIdCount++
 
     var dueTime = Pair(0, 0)
     var reminderTime = Pair(0, 0)
+    val context = LocalContext.current
     Column(
         modifier = Modifier.padding(16.dp)) {
         // Title field
@@ -248,7 +262,7 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
             remindTime = remindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        AssigneeDropdown()
+        assignee = AssigneeDropdown()
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = notes,
@@ -259,11 +273,24 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
         Spacer(modifier = Modifier.padding(top = 10.dp))
         Button(
             onClick = {
-                val task = Task(id = id, title = title, dueDate = dueDate, remindTime = remindTime, notes = notes, isCompleted = isCompleted)
-                addTask(task)
+                val task = Task(
+                    id = id,
+                    title = title,
+                    dueDate = dueDate,
+                    remindTime = remindTime,
+                    assignee = assignee,
+                    notes = notes,
+                    isCompleted = isCompleted
+                )
+                //addTask(task)
+                if (task.assignee?.name != "None" || task.assignee != null) {
+                    task.assignee?.tasks?.add(task)
+                }
+                showToast(context, "Task created successfully")
                 title = ""
                 dueDate = LocalDateTime.now()
                 remindTime = LocalDateTime.now()
+                assignee = null
                 notes = ""
                 isCompleted = false
             },
@@ -288,10 +315,11 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
 
 
 @Composable
-fun TaskEditor(task: Task, showDialog: Boolean) {
+fun TaskEditor(task: Task, showDialog: Boolean): Boolean {
     var newTitle by remember { mutableStateOf(task.title) }
     var newDueDate by remember { mutableStateOf(task.dueDate) }
     var newRemindTime by remember { mutableStateOf(task.remindTime) }
+    var newAssignee by remember { mutableStateOf(task.assignee) }
     var newNotes by remember { mutableStateOf(task.notes) }
     var newIsCompleted by remember { mutableStateOf(task.isCompleted) }
     val currDueDateText = "${task.dueDate?.dayOfMonth}/${task.dueDate?.month?.value}/${task.dueDate?.year}"
@@ -299,8 +327,21 @@ fun TaskEditor(task: Task, showDialog: Boolean) {
 
     var dueTime = Pair(0, 0)
     var reminderTime = Pair(0, 0)
-    Column(
-        modifier = Modifier.padding(16.dp)) {
+    var deleteClicked = false
+    val context = LocalContext.current
+    Column(modifier = Modifier.padding(16.dp)) {
+        IconButton(
+            onClick = {
+                task.assignee?.tasks?.remove(task)
+                tasksList.remove(task)
+                deleteClicked = true
+            },
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+        }
+        if (deleteClicked) return true
+
         // Title field
         OutlinedTextField(
             value = newTitle,
@@ -340,11 +381,20 @@ fun TaskEditor(task: Task, showDialog: Boolean) {
         Spacer(modifier = Modifier.padding(top = 10.dp))
         Button(
             onClick = {
+                // remove task from previous assignee
+                task.assignee?.tasks?.remove(task)
+                // update all information fields
                 task.title = newTitle
                 task.dueDate = newDueDate
                 task.remindTime = newRemindTime
+                task.assignee = newAssignee
                 task.notes = newNotes
                 task.isCompleted = newIsCompleted
+                // add task to new assignee
+                if (task.assignee?.name != "None" || task.assignee != null) {
+                    task.assignee?.tasks?.add(task)
+                }
+                showToast(context, "Task updated successfully")
             },
 
             modifier = Modifier
@@ -363,6 +413,11 @@ fun TaskEditor(task: Task, showDialog: Boolean) {
             )
         }
     }
+    return false
+}
+
+fun showToast(context: Context, message: String) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }
 
 
