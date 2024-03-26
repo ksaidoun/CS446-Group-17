@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import com.example.famplanapp.darkPurple
+import com.example.famplanapp.globalClasses.Family
 import com.example.famplanapp.lightPurple
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -230,7 +231,7 @@ fun TaskItem(task: Task, deleteTask: () -> Unit) {
 }
 
 @Composable
-fun Tasks(innerPadding: PaddingValues) {
+fun Tasks(innerPadding: PaddingValues, family: Family?) {
     val tasks = remember { tasksList }
     var showDialog by remember { mutableStateOf(false) }
 
