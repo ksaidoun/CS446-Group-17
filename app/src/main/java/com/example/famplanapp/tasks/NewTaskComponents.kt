@@ -154,57 +154,6 @@ fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDate
     }
     return LocalDateTime.of(newYear, newMonth, newDay, 0, 0)
 }
-/*
-@Composable
-fun TasksTimePicker(defaultDate: LocalDateTime?): Pair<Int, Int> {
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance()
-    var selectedTime by remember { mutableStateOf(Calendar.getInstance()) }
-    var selectedTimeText by remember { mutableStateOf("") }
-
-    // get current hour and minute
-    val hour = calendar[Calendar.HOUR_OF_DAY]
-    val minute = calendar[Calendar.MINUTE]
-
-    var newHour by remember { mutableIntStateOf(hour) }
-    var newMinute by remember { mutableIntStateOf(minute) }
-
-    if (defaultDate != null) {
-        newHour = defaultDate.hour
-        newMinute = defaultDate.minute
-        selectedTime = defaultDate.toCalendar()
-        selectedTimeText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(selectedTime.time)
-    }
-    val timePicker = TimePickerDialog(
-        context,
-        { _, selectedHour: Int, selectedMinute: Int ->
-            selectedTime.set(selectedHour, selectedMinute)
-            newHour = selectedHour
-            newMinute = selectedMinute
-            selectedTimeText = SimpleDateFormat("HH:mm", Locale.getDefault()).format(selectedTime.time)
-        },
-        hour,
-        minute,
-        false
-    )
-    timePicker.updateTime(newHour, newMinute)
-
-    Column(
-        horizontalAlignment = Alignment.End
-    ) {
-        ReadonlyOutlinedTextField(
-            value = selectedTimeText,
-            onValueChange = { selectedTimeText = it },
-            onClick = {
-                timePicker.show()
-            }
-        ) {
-            Text(text = "Time")
-        }
-    }
-    return Pair(newHour, newMinute)
-}
-*/
 
 @Composable
 fun TasksTimePicker(defaultDate: LocalDateTime?): Pair<Int, Int> {
@@ -304,7 +253,7 @@ fun AssigneeDropdown(prevAssignee: User?): User {
 
 
 @Composable
-fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
+fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
     val id = taskIdCount
     var title by remember { mutableStateOf("") }
     var dueDate: LocalDateTime? = null
@@ -358,6 +307,7 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
         Spacer(modifier = Modifier.padding(top = 10.dp))
         Button(
             onClick = {
+                // create task and change model
                 val task = Task(
                     id = id,
                     title = title,
@@ -367,10 +317,9 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
                     notes = notes,
                     isCompleted = isCompleted
                 )
-                addTask(task)
-                if (task.assignee?.name != "None" || task.assignee != null) {
-                    task.assignee?.tasks?.add(task)
-                }
+                tasksViewModel.addTask(task)
+                tasksViewModel.setCurrDisplayedTasks()
+
                 showToast(context, "Task created successfully")
                 title = ""
                 dueDate = LocalDateTime.now()
@@ -400,26 +349,24 @@ fun TaskCreator(addTask: (Task) -> Unit, showDialog: Boolean) {
 
 
 @Composable
-fun TaskEditor(task: Task, showDialog: Boolean): Boolean {
+fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean): Boolean {
     var newTitle by remember { mutableStateOf(task.title) }
     var newDueDate by remember { mutableStateOf(task.dueDate) }
     var newRemindTime by remember { mutableStateOf(task.remindTime) }
     var newAssignee by remember { mutableStateOf(task.assignee) }
     var newNotes by remember { mutableStateOf(task.notes) }
     var newIsCompleted by remember { mutableStateOf(task.isCompleted) }
-    val currDueDateText = "${task.dueDate?.dayOfMonth}/${task.dueDate?.month?.value}/${task.dueDate?.year}"
-    val currRemindDateText = "${task.remindTime?.dayOfMonth}/${task.remindTime?.month?.value}/${task.remindTime?.year}"
 
-    var dueTime = Pair(0, 0)
-    var reminderTime = Pair(0, 0)
+    var dueTime: Pair<Int, Int>
+    var reminderTime: Pair<Int, Int>
     var deleteClicked = false
     val context = LocalContext.current
     Column(modifier = Modifier.padding(16.dp)) {
         IconButton(
             onClick = {
-                task.assignee?.tasks?.remove(task)
-                tasksList.remove(task)
+                tasksViewModel.deleteTask(task)
                 deleteClicked = true
+                tasksViewModel.setCurrDisplayedTasks()
             },
             modifier = Modifier.align(Alignment.End)
         ) {
@@ -466,19 +413,8 @@ fun TaskEditor(task: Task, showDialog: Boolean): Boolean {
         Spacer(modifier = Modifier.padding(top = 10.dp))
         Button(
             onClick = {
-                // remove task from previous assignee
-                task.assignee?.tasks?.remove(task)
-                // update all information fields
-                task.title = newTitle
-                task.dueDate = newDueDate
-                task.remindTime = newRemindTime
-                task.assignee = newAssignee
-                task.notes = newNotes
-                task.isCompleted = newIsCompleted
-                // add task to new assignee
-                if (task.assignee?.name != "None" || task.assignee != null) {
-                    task.assignee?.tasks?.add(task)
-                }
+                tasksViewModel.editTask(task, newTitle, newDueDate!!, newRemindTime!!, newAssignee!!, newNotes, newIsCompleted)
+                tasksViewModel.setCurrDisplayedTasks()
                 showToast(context, "Task updated successfully")
             },
 

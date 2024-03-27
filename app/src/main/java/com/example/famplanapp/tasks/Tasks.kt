@@ -1,7 +1,5 @@
 package com.example.famplanapp.tasks
 
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,24 +24,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
-import com.example.famplanapp.darkPurple
-import com.example.famplanapp.globalClasses.Family
-import com.example.famplanapp.lightPurple
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-
-var tasksList = mutableListOf<Task>()
-
+var displaying = mutableListOf<Int>()
 
 @Composable
-fun FilterDropdown(){
-    // expanded state of the Text Field
+fun FilterDropdown(tasksViewModel: TasksViewModel){
+    // expanded/visible dropdown or not
     var expanded by remember { mutableStateOf(false) }
-    // temporary list of options, eventually use list of users
-    val assignees = listOf("My Tasks", "All Tasks", "Unassigned")
-    var selectedAssignee by remember { mutableStateOf("My Tasks") }
+    val filters = listOf("My Tasks", "All Tasks", "Unassigned")
+    var selectedFilter by remember { mutableStateOf(tasksViewModel.currFilter) }
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
     // Up Icon when expanded and down icon when collapsed
     val icon = if (expanded)
@@ -52,17 +43,15 @@ fun FilterDropdown(){
         Icons.Filled.KeyboardArrowDown
 
     Column() {
-        // Create an Outlined Text Field
-        // with icon and not expanded
         OutlinedTextField(
-            value = selectedAssignee,
-            onValueChange = { selectedAssignee = it },
+            value = selectedFilter,
+            onValueChange = {
+                selectedFilter = it
+                tasksViewModel.currFilter = selectedFilter },
             modifier = Modifier
                 .fillMaxWidth(0.6f)
                 .padding(8.dp)
                 .onGloballyPositioned { coordinates ->
-                    // This value is used to assign to
-                    // the DropDown the same width
                     textFieldSize = coordinates.size.toSize()
                 },
             label = {Text("Filter")},
@@ -77,9 +66,10 @@ fun FilterDropdown(){
             modifier = Modifier
                 .width(with(LocalDensity.current){textFieldSize.width.toDp()})
         ) {
-            assignees.forEach { label ->
+            filters.forEach { label ->
                 DropdownMenuItem(onClick = {
-                    selectedAssignee = label
+                    selectedFilter = label
+                    tasksViewModel.currFilter = selectedFilter
                     expanded = false
                 }) {
                     Text(text = label)
@@ -87,15 +77,16 @@ fun FilterDropdown(){
             }
         }
     }
+    TaskDisplayArea(tasksViewModel)
 }
+
 @Composable
-fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
+fun TaskDisplayArea(tasksViewModel: TasksViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<Task?>(null) }
-    Spacer(modifier = Modifier.height(70.dp))
-    FilterDropdown()
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        items(tasks){task ->
+
+    LazyColumn(modifier = Modifier.padding(12.dp)) {
+        items(tasksViewModel.currDisplayedTasks){task ->
             ToDoItem(task) {
                 selectedTask = task
                 showDialog = true
@@ -111,7 +102,7 @@ fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
                     .background(Color.White)
                 //.padding(16.dp)
             ) {
-                val returned = TaskEditor(selectedTask!!, showDialog)
+                val returned = TaskEditor(selectedTask!!, tasksViewModel, showDialog)
                 if (returned) showDialog = false
                 Button(
                     onClick = { showDialog = false },
@@ -151,13 +142,7 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
                 checked = checkedState.value,
                 onCheckedChange = {
                     checkedState.value = it
-                    /*if (!checkedState.value) {
-                        textColor = Color.Gray
-                        textDecor = TextDecoration.LineThrough
-                    } else {
-                        textColor = Color.Black
-                        textDecor = null
-                    } */
+                    task.isCompleted = checkedState.value
                 },
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
@@ -197,18 +182,18 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
 }
 
 @Composable
-fun Tasks(innerPadding: PaddingValues) {
-    val tasks = remember { tasksList }
+fun Tasks(tasksViewModel: TasksViewModel, innerPadding: PaddingValues) {
     var showDialog by remember { mutableStateOf(false) }
-
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            Spacer(modifier = Modifier.height(70.dp))
+            FilterDropdown(tasksViewModel)
             // Dropdown menu in the top left goes here
-            TaskDisplayArea(tasks, deleteTask = { task -> tasks.remove(task) })
+            TaskDisplayArea(tasksViewModel)
         }
         // Button in the bottom right
         Box(
@@ -235,7 +220,7 @@ fun Tasks(innerPadding: PaddingValues) {
                         .background(Color.White)
                     //.padding(16.dp)
                 ) {
-                    TaskCreator(addTask = { task -> tasksList.add(task) }, showDialog)
+                    TaskCreator(tasksViewModel, showDialog)
                     Button(
                         onClick = { showDialog = false },
                         modifier = Modifier
