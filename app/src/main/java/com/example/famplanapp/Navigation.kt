@@ -3,6 +3,13 @@ package com.example.famplanapp
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Scaffold
@@ -14,7 +21,12 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,7 +37,9 @@ import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Tasks
 import com.example.famplanapp.tasks.tasksList
+import com.example.famplanapp.voting.PollCreationScreen
 import com.example.famplanapp.voting.PollList
+import com.example.famplanapp.voting.Voting
 import com.example.famplanapp.voting.samplePosts
 
 // TEST VALUES FOR USERS & FAMILY
@@ -100,48 +114,7 @@ fun BottomNavBar(){
                 Tasks(innerPadding)
             }
             composable("Voting") {
-                var showPollCreationDialog by remember { mutableStateOf(false) }
-
-                // Screen content for Voting
-                Box(modifier = Modifier.fillMaxSize()) {
-
-                    PollList(samplePosts)
-
-                    Box(
-                        modifier = Modifier
-                            .padding(16.dp, 76.dp)
-                            .size(56.dp)
-                            .background(MaterialTheme.colors.primary, CircleShape)
-                            .clickable { showPollCreationDialog = true }
-                            .align(Alignment.BottomEnd)
-                    ) {
-                        Text(
-                            text = "+",
-                            style = TextStyle(
-                                color = MaterialTheme.colors.background,
-                                fontSize = 24.sp
-                            ),
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
-                }
-                if (showPollCreationDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showPollCreationDialog = false },
-                        text = {
-                            PollCreationScreen(onPollCreated = { poll ->
-                                // TODO: Handle the created poll (e.g., add it to your list of polls)
-                                showPollCreationDialog = false
-                            })
-                        },
-                        confirmButton = {},
-                        dismissButton = {
-                            Button(onClick = { showPollCreationDialog = false }) {
-                                Text("Cancel")
-                            }
-                        }
-                    )
-                }
+                Voting(innerPadding)
             }
             composable("Gallery") {
                 // Screen content for Gallery

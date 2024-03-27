@@ -5,8 +5,13 @@ import java.time.LocalDateTime
 
 data class Poll(
     val id: Int,
-    val owner: User, // should be User object eventually
+    val owner: User,
     val subject: String,
     val options: List<PollOption>,
-    val deadline: LocalDateTime
+    val deadline: LocalDateTime? = null
+)
+
+data class PollOption(
+    val option: String,
+    var votes: Int = 0
 )

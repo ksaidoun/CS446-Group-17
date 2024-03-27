@@ -1,9 +1,11 @@
 package com.example.famplanapp.voting
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -25,7 +28,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
@@ -42,19 +45,86 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.famplanapp.darkPurple
 import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.lightPurple
+import com.example.famplanapp.tasks.TasksDatePicker
+import com.example.famplanapp.tasks.TasksTimePicker
 import java.time.Duration
 import java.time.LocalDateTime
 
-
-
-data class PollOption(
-    val option: String,
-    var votes: Int = 0
+var pollList = mutableListOf(
+    Poll(1, User("Julia"),"What should we have for dinner tonight?",
+        listOf(
+            PollOption("Chili with rice"),
+            PollOption("Chicken stir fry"),
+            PollOption("Something else"),
+            PollOption("Another option")),
+        LocalDateTime.now().plusDays(1)), // Poll ends in 1 day
+    Poll(2,  User("Michael"),"How should we spend Family Day 2024?",
+        listOf(
+            PollOption("Go skiing"),
+            PollOption("Go to Niagara Falls"),
+            PollOption("Watch a movie")
+        ),
+        LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours
+    Poll(2,  User("Dad"),"Poll question?",
+        listOf(PollOption("Option A"), PollOption("Option B"),
+            PollOption("Option C"), PollOption("Option D"), PollOption("Option E")),
+        LocalDateTime.now().plusHours(12)) // Poll ends in 12 hours,
 )
 
+@Composable
+fun Voting(innerPadding: PaddingValues) {
+    var showPollCreationDialog by remember { mutableStateOf(false) }
+
+    // Screen content for Voting
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        PollList(pollList)
+
+        Box(
+            modifier = Modifier
+                .padding(16.dp, 76.dp)
+                .size(56.dp)
+                .background(MaterialTheme.colors.primary, CircleShape)
+                .clickable { showPollCreationDialog = true }
+                .align(Alignment.BottomEnd)
+        ) {
+            Text(
+                text = "+",
+                style = TextStyle(
+                    color = MaterialTheme.colors.background,
+                    fontSize = 24.sp
+                ),
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+    }
+    if (showPollCreationDialog) {
+        Dialog(onDismissRequest = { showPollCreationDialog = false }) {
+            Box(
+                modifier = Modifier
+                    .background(Color.White)
+            ) {
+                PollCreationScreen(onPollCreated = { poll ->
+                    pollList.add(poll)
+                    showPollCreationDialog = false
+                })
+                Button(
+                    onClick = { showPollCreationDialog = false },
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(bottom = 10.dp, start = 16.dp)
+                ) {
+                    Text("Close")
+                }
+            }
+        }
+    }
+
+}
 
 @Composable
 fun PollCard(poll: Poll) {
@@ -181,20 +251,20 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
     var deadline by remember { mutableStateOf(LocalDateTime.now().plusDays(1)) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+        modifier = Modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Create a New Poll", style = MaterialTheme.typography.h6)
         Spacer(modifier = Modifier.height(16.dp))
 
         // title
-        TextField(
+        OutlinedTextField(
             value = title,
             onValueChange = { title = it },
             label = { Text("Poll Title") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.White,
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -203,9 +273,10 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
         options.forEachIndexed { index, option ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+
             ) {
-                TextField(
+                OutlinedTextField(
                     value = option,
                     onValueChange = { newOption ->
                         val mutableOptions = options.toMutableList()
@@ -214,7 +285,10 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
                     },
                     label = { Text("Option ${index + 1}") },
                     modifier = Modifier.width(200.dp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.White,
+                    )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -240,14 +314,13 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // deadline will become date/time picker later
-        TextField(
-            value = deadline.toString(),
-            onValueChange = { /* TODO */ },
-            label = { Text("Deadline") },
-            modifier = Modifier.fillMaxWidth(),
-            readOnly = true  // false later for date/time picker
-        )
+        Row (
+        ) {
+            var dueDate = TasksDatePicker("Due Date", null)
+            Spacer(modifier = Modifier.width(8.dp))
+            var dueTime = TasksTimePicker()
+            deadline = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -264,10 +337,22 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
                         )
                     )
                 }
+
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.White,
+                contentColor = Color(darkPurple)
+            )
         ) {
-            Text("Create Poll")
+            Text(
+                "Create",
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            )
         }
     }
 }
