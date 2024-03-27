@@ -46,6 +46,27 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.famplanapp.gallery.Gallery
+import com.example.famplanapp.globalClasses.AppSettings
+import com.example.famplanapp.globalClasses.Family
+import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.schedule.Schedule
+import com.example.famplanapp.tasks.Tasks
+import com.example.famplanapp.tasks.tasksList
+import com.example.famplanapp.voting.PollList
+import com.example.famplanapp.voting.samplePosts
+
+// TEST VALUES FOR USERS & FAMILY
+val tempSettings: AppSettings = AppSettings(false, "Push")
+val tempUser: User = User(
+    "David Smith",
+    "David",
+    "testemail@gmail.com",
+    tasksList,
+    "#dc143c",
+    "Admin",
+    tempSettings)
+var tempUsers: List<User> = listOf(tempUser)
+var family: Family = Family(1, tempSettings, tempUsers)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -206,8 +227,48 @@ fun BottomNavBar(){
                 Tasks(innerPadding)
             }
             composable("Voting") {
+                var showPollCreationDialog by remember { mutableStateOf(false) }
+
                 // Screen content for Voting
-                PollList(samplePosts)
+                Box(modifier = Modifier.fillMaxSize()) {
+
+                    PollList(samplePosts)
+
+                    Box(
+                        modifier = Modifier
+                            .padding(16.dp, 76.dp)
+                            .size(56.dp)
+                            .background(MaterialTheme.colors.primary, CircleShape)
+                            .clickable { showPollCreationDialog = true }
+                            .align(Alignment.BottomEnd)
+                    ) {
+                        Text(
+                            text = "+",
+                            style = TextStyle(
+                                color = MaterialTheme.colors.background,
+                                fontSize = 24.sp
+                            ),
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
+                if (showPollCreationDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showPollCreationDialog = false },
+                        text = {
+                            PollCreationScreen(onPollCreated = { poll ->
+                                // TODO: Handle the created poll (e.g., add it to your list of polls)
+                                showPollCreationDialog = false
+                            })
+                        },
+                        confirmButton = {},
+                        dismissButton = {
+                            Button(onClick = { showPollCreationDialog = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
+                }
             }
             composable("Gallery") {
                 // Screen content for Gallery
