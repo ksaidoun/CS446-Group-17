@@ -41,7 +41,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -52,6 +54,7 @@ import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Tasks
 import com.example.famplanapp.tasks.tasksList
+import com.example.famplanapp.voting.PollCreationScreen
 import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.voting.samplePosts
 
