@@ -342,7 +342,7 @@ fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
 
 
 @Composable
-fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean): Boolean {
+fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean) {
     var newTitle by remember { mutableStateOf(task.title) }
     var newDueDate by remember { mutableStateOf(task.dueDate) }
     var newRemindTime by remember { mutableStateOf(task.remindTime) }
@@ -352,20 +352,17 @@ fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean):
 
     var dueTime: Pair<Int, Int>
     var reminderTime: Pair<Int, Int>
-    var deleteClicked = false
     val context = LocalContext.current
     Column(modifier = Modifier.padding(16.dp)) {
         IconButton(
             onClick = {
                 tasksViewModel.deleteTask(task)
-                deleteClicked = true
+                showToast(context, "Task deleted successfully")
             },
             modifier = Modifier.align(Alignment.End)
         ) {
             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
         }
-        if (deleteClicked) return true
-
         // Title field
         OutlinedTextField(
             value = newTitle,
@@ -425,7 +422,6 @@ fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean):
             )
         }
     }
-    return false
 }
 
 fun showToast(context: Context, message: String) {

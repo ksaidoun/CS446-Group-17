@@ -113,8 +113,7 @@ fun TaskDisplayArea(tasksViewModel: TasksViewModel) {
                     .background(Color.White)
                 //.padding(16.dp)
             ) {
-                val returned = TaskEditor(selectedTask!!, tasksViewModel, showDialog)
-                if (returned) showDialog = false
+                TaskEditor(selectedTask!!, tasksViewModel, showDialog)
                 Button(
                     onClick = { showDialog = false },
                     modifier = Modifier
@@ -201,7 +200,7 @@ fun Tasks(tasksViewModel: TasksViewModel, innerPadding: PaddingValues) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(modifier = Modifier.height(70.dp))
+            Spacer(modifier = Modifier.height(50.dp))
             FilterDropdown(tasksViewModel)
             // Dropdown menu in the top left goes here
             TaskDisplayArea(tasksViewModel)

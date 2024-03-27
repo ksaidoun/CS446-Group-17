@@ -11,7 +11,6 @@ class TasksViewModel: ViewModel() {
     private var tasksList = mutableListOf<Task>()
     var currDisplayedTasks = tasksList.toMutableList()
     var currFilter = "My Tasks"
-    var onUpdate = mutableStateOf(0)
     private var taskIdCount = 0
 
     fun getTasksList(): MutableList<Task> {
@@ -80,12 +79,5 @@ class TasksViewModel: ViewModel() {
         }
         currDisplayedTasks.sortBy { it.dueDate }
         return currDisplayedTasks
-    }
-
-    private fun updateUI() {
-        onUpdate.value = (0..1_000_000).random()
-    }
-    fun update(){
-        updateUI()
     }
 }
