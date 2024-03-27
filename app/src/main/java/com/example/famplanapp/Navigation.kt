@@ -97,8 +97,10 @@ fun BottomNavBar(){
             TopAppBar(
                 title = {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier.fillMaxWidth()
+                            .height(30.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "FamPlan",
@@ -164,6 +166,7 @@ fun BottomNavBar(){
 
                  */
                 modifier = Modifier.fillMaxWidth()
+                        .height(50.dp)
             )
         },
         bottomBar = {
