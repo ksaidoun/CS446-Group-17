@@ -1,3 +1,5 @@
+package com.example.famplanapp.gallery
+
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
@@ -29,9 +31,10 @@ import androidx.compose.ui.unit.dp
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.time.LocalDate
 
 @Composable
-fun PhotoGallery(photos: List<Int>) {
+fun DefaultPhotoGallery(photos: List<Int>) {
     var selectedPhoto by remember { mutableStateOf<Int?>(null) }
 
     LazyColumn(
@@ -82,6 +85,7 @@ fun PhotoItem(photoResId: Int, onClick: (Int) -> Unit) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FullSizeImageModal(photoResId: Int, onClose: () -> Unit) {
+    val currentDate = LocalDate.now()
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Expanded)
 
@@ -130,7 +134,7 @@ fun FullSizeImageModal(photoResId: Int, onClose: () -> Unit) {
                     .background(MaterialTheme.colors.background)
             ) {
                 Text(
-                    text = "Uploader: Kw\nDate: Testing Date",
+                    text = "Uploader: Brandon\nDate: $currentDate",
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier
                         .padding(16.dp)
@@ -148,6 +152,7 @@ fun FullSizeImageModal(photoResId: Int, onClose: () -> Unit) {
         sheetState = sheetState,
         sheetShape = MaterialTheme.shapes.large,
         sheetBackgroundColor = Color.Transparent,
+        sheetElevation = 16.dp,
         scrimColor = Color.Black.copy(alpha = 0.6f)
     ) {
     }

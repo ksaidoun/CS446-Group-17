@@ -1,4 +1,4 @@
-package com.example.famplanapp
+package com.example.famplanapp.voting
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -42,23 +42,19 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.famplanapp.darkPurple
+import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.lightPurple
 import java.time.Duration
 import java.time.LocalDateTime
 
-val darkPurple = 0xFF220059
-val lightPurple = 0xFFEDE7F7
+
 
 data class PollOption(
     val option: String,
     var votes: Int = 0
 )
-data class Poll(
-    val id: Int,
-    val owner: String, // should be User object eventually
-    val subject: String,
-    val options: List<PollOption>,
-    val deadline: LocalDateTime
-)
+
 
 @Composable
 fun PollCard(poll: Poll) {
@@ -88,7 +84,7 @@ fun PollCard(poll: Poll) {
 
                 // owner of poll
                 Text(
-                    text = "From ${poll.owner}:",
+                    text = "From ${poll.owner.name}:",
                     style = MaterialTheme.typography.subtitle2,
                     color = contentColor
                 )
@@ -145,18 +141,24 @@ fun PollCard(poll: Poll) {
 }
 
 val samplePosts = listOf(
-    Poll(1, "Julia","What should we have for dinner tonight?",
-        listOf(PollOption("Chili with rice"), PollOption("Chicken stir fry"),
-            PollOption("Something else"), PollOption("Another option")),
+    Poll(1, User("Julia"),"What should we have for dinner tonight?",
+        listOf(
+            PollOption("Chili with rice"),
+            PollOption("Chicken stir fry"),
+            PollOption("Something else"),
+            PollOption("Another option")),
         LocalDateTime.now().plusDays(1)), // Poll ends in 1 day
-    Poll(2,  "Dad","Poll question?",
+    Poll(2,  User("Michael"),"How should we spend Family Day 2024?",
+        listOf(
+            PollOption("Go skiing"),
+            PollOption("Go to Niagara Falls"),
+            PollOption("Watch a movie")
+        ),
+        LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours
+    Poll(2,  User("Dad"),"Poll question?",
         listOf(PollOption("Option A"), PollOption("Option B"),
             PollOption("Option C"), PollOption("Option D"), PollOption("Option E")),
-        LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours,
-    Poll(2,  "Michael","How should we spend Family Day 2024?",
-        listOf(PollOption("Go skiing"), PollOption("Go to Niagara Falls"),
-            PollOption("Watch a movie")),
-        LocalDateTime.now().minusHours(12)) // Poll ends in 12 hours
+        LocalDateTime.now().plusHours(12)) // Poll ends in 12 hours,
 )
 
 @Composable
@@ -255,7 +257,7 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
                     onPollCreated(
                         Poll(
                             id = 0,// refactor this when database is implemented
-                            owner = "CurrentUser", // will get user object eventually
+                            owner = User("CurrentUser"), // will get user object eventually
                             subject = title,
                             options = options.map { PollOption(it) },
                             deadline = deadline

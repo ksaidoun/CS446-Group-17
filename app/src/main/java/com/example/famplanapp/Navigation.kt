@@ -1,16 +1,8 @@
 package com.example.famplanapp
 
 
-import PhotoGallery
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Scaffold
@@ -22,28 +14,43 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.famplanapp.gallery.Gallery
+import com.example.famplanapp.globalClasses.AppSettings
+import com.example.famplanapp.globalClasses.Family
+import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.schedule.Schedule
+import com.example.famplanapp.tasks.Tasks
+import com.example.famplanapp.tasks.tasksList
+import com.example.famplanapp.voting.PollList
+import com.example.famplanapp.voting.samplePosts
+
+// TEST VALUES FOR USERS & FAMILY
+val tempSettings: AppSettings = AppSettings(false, "Push")
+val tempUser: User = User(
+    "David Smith",
+    "David",
+    "testemail@gmail.com",
+    tasksList,
+    "#dc143c",
+    "Admin",
+    tempSettings)
+var tempUsers: List<User> = listOf(tempUser)
+var family: Family = Family(1, tempSettings, tempUsers)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BottomNavBar(){
     val photos = mutableListOf<Int>()
-    repeat(5) {
-        photos.addAll(listOf(
-            R.drawable.test1,
-            R.drawable.test2,
-            R.drawable.test3,
-            R.drawable.test4
-        ))
-    }
+    photos.addAll(listOf(
+        R.drawable.test1,
+        R.drawable.test2,
+        R.drawable.test3,
+        R.drawable.test4
+    ))
 
     val navController = rememberNavController()
 
@@ -63,6 +70,7 @@ fun BottomNavBar(){
                         icon = { Icon(navItem.icon, contentDescription = null) },
                         label = { Text(navItem.title) },
                         selected = selectedItem == index,
+
                         onClick = {
                             selectedItem = index
                             navController.navigate(navItem.title) {
@@ -137,32 +145,10 @@ fun BottomNavBar(){
             }
             composable("Gallery") {
                 // Screen content for Gallery
-                Box(modifier = Modifier.fillMaxSize().padding(top = 60.dp, bottom = 60.dp)) {
-                    Gallery(photos)
-
-                    Box(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .size(56.dp)
-                            .background(MaterialTheme.colors.primary, CircleShape)
-                            .clickable { /* Handle button click */ }
-                            .align(Alignment.BottomEnd)
-                    ) {
-                        Text(
-                            text = "+",
-                            style = TextStyle(color = MaterialTheme.colors.background, fontSize = 24.sp),
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
-                }
+                Gallery(photos)
             }
         }
     }
-}
-
-@Composable
-fun Gallery(photos: List<Int>) {
-    PhotoGallery(photos = photos)
 }
 
 data class NavItem(val title: String, val icon: ImageVector)
