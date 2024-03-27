@@ -28,12 +28,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,16 +49,12 @@ import androidx.compose.ui.unit.toSize
 import com.example.famplanapp.darkPurple
 import com.example.famplanapp.family
 import com.example.famplanapp.globalClasses.User
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Locale
 
-var taskIdCount = 0
+
 @Composable
 fun ReadonlyOutlinedTextField(
     value: String,
@@ -177,7 +171,7 @@ fun TasksTimePicker(defaultDate: LocalDateTime?): Pair<Int, Int> {
         { _, selectedHour: Int, selectedMinute: Int ->
             selectedTimeText = "$selectedHour:$selectedMinute"
             newHour = selectedHour
-            newMinute - selectedMinute
+            newMinute = selectedMinute
         }, hour, minute, false
     )
     timePicker.updateTime(newHour, newMinute)
@@ -202,14 +196,15 @@ fun TasksTimePicker(defaultDate: LocalDateTime?): Pair<Int, Int> {
 fun AssigneeDropdown(prevAssignee: User?): User {
     // expanded state of the Text Field
     var expanded by remember { mutableStateOf(false) }
-    // temporary list of options, eventually use list of users
+    // if "None" is selected as assignee
     val noneUser = User("None", "None")
     var assignees = mutableListOf(noneUser)
     assignees.addAll(family.users)
+    // track selected assignee
     var selectedAssignee by remember { mutableStateOf(assignees.first()) }
     if (prevAssignee != null) selectedAssignee = prevAssignee
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
-    // Up Icon when expanded and down icon when collapsed
+    // up icon when expanded and down icon when collapsed
     val icon = if (expanded)
         Icons.Filled.KeyboardArrowUp
     else
@@ -254,14 +249,14 @@ fun AssigneeDropdown(prevAssignee: User?): User {
 
 @Composable
 fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
-    val id = taskIdCount
+    val id = tasksViewModel.getTaskIdCount()
     var title by remember { mutableStateOf("") }
     var dueDate: LocalDateTime? = null
     var remindTime: LocalDateTime? = null
     var assignee: User? by remember { mutableStateOf(null) }
     var notes by remember { mutableStateOf("") }
     var isCompleted = false
-    taskIdCount++
+    tasksViewModel.increaseId()
 
     var dueTime = Pair(0, 0)
     var reminderTime = Pair(0, 0)
@@ -318,8 +313,6 @@ fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
                     isCompleted = isCompleted
                 )
                 tasksViewModel.addTask(task)
-                tasksViewModel.setCurrDisplayedTasks()
-
                 showToast(context, "Task created successfully")
                 title = ""
                 dueDate = LocalDateTime.now()
@@ -366,7 +359,6 @@ fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean):
             onClick = {
                 tasksViewModel.deleteTask(task)
                 deleteClicked = true
-                tasksViewModel.setCurrDisplayedTasks()
             },
             modifier = Modifier.align(Alignment.End)
         ) {
@@ -414,7 +406,6 @@ fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean):
         Button(
             onClick = {
                 tasksViewModel.editTask(task, newTitle, newDueDate!!, newRemindTime!!, newAssignee!!, newNotes, newIsCompleted)
-                tasksViewModel.setCurrDisplayedTasks()
                 showToast(context, "Task updated successfully")
             },
 

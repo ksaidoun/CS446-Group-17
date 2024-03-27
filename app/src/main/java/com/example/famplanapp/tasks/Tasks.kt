@@ -36,7 +36,7 @@ fun FilterDropdown(tasksViewModel: TasksViewModel){
     val filters = listOf("My Tasks", "All Tasks", "Unassigned")
     var selectedFilter by remember { mutableStateOf(tasksViewModel.currFilter) }
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
-    // Up Icon when expanded and down icon when collapsed
+    // up icon when expanded and down icon when collapsed
     val icon = if (expanded)
         Icons.Filled.KeyboardArrowUp
     else
@@ -85,13 +85,24 @@ fun TaskDisplayArea(tasksViewModel: TasksViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<Task?>(null) }
 
-    LazyColumn(modifier = Modifier.padding(12.dp)) {
-        items(tasksViewModel.currDisplayedTasks){task ->
-            ToDoItem(task) {
-                selectedTask = task
-                showDialog = true
+    tasksViewModel.setCurrDisplayedTasks()
+    displaying.clear()
+    if (tasksViewModel.currDisplayedTasks.isNotEmpty()) {
+        LazyColumn(modifier = Modifier.padding(12.dp)) {
+            items(
+                items = tasksViewModel.currDisplayedTasks,
+                key = { task -> task.id }
+            ) { task ->
+                if (task.id !in displaying) {
+                    ToDoItem(task) {
+                        selectedTask = task
+                        showDialog = true
+                    }
+                    displaying.add(task.id)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
     if (showDialog) {

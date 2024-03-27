@@ -8,21 +8,34 @@ import com.example.famplanapp.globalClasses.User
 import java.time.LocalDateTime
 
 class TasksViewModel: ViewModel() {
-    var tasksList = mutableListOf<Task>()
-    var currDisplayedTasks = tasksList.toMutableStateList()
+    private var tasksList = mutableListOf<Task>()
+    var currDisplayedTasks = tasksList.toMutableList()
     var currFilter = "My Tasks"
     var onUpdate = mutableStateOf(0)
+    private var taskIdCount = 0
+
+    fun getTasksList(): MutableList<Task> {
+        return tasksList
+    }
+    fun increaseId() {
+        taskIdCount++
+    }
+    fun getTaskIdCount(): Int {
+        return taskIdCount
+    }
 
     fun addTask(task: Task) {
         tasksList.add(task)
         if (task.assignee?.name != "None" || task.assignee != null) {
             task.assignee?.tasks?.add(task)
         }
+        setCurrDisplayedTasks()
     }
 
     fun deleteTask(task: Task) {
         tasksList.remove(task)
         task.assignee?.tasks?.remove(task)
+        setCurrDisplayedTasks()
     }
 
     fun editTask(task: Task,
@@ -46,6 +59,7 @@ class TasksViewModel: ViewModel() {
         if (task.assignee?.name != "None" || task.assignee != null) {
             task.assignee?.tasks?.add(task)
         }
+        setCurrDisplayedTasks()
     }
 
     fun setCurrDisplayedTasks(): MutableList<Task> {
@@ -64,6 +78,7 @@ class TasksViewModel: ViewModel() {
                 currDisplayedTasks = tasksList.toMutableStateList()
             }
         }
+        currDisplayedTasks.sortBy { it.dueDate }
         return currDisplayedTasks
     }
 
