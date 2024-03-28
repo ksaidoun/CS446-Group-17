@@ -3,13 +3,6 @@ package com.example.famplanapp
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Scaffold
@@ -21,12 +14,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -37,8 +25,6 @@ import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Tasks
 import com.example.famplanapp.tasks.tasksList
-import com.example.famplanapp.voting.PollCreationScreen
-import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.voting.Voting
 
 // TEST VALUES FOR USERS & FAMILY

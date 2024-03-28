@@ -83,7 +83,7 @@ fun addToPolls(pollList: MutableList<Poll>, poll: Poll) {
     pollList.add(poll)
 
     val now = LocalDateTime.now()
-    pollList.sortWith(Comparator { p1, p2 ->
+    pollList.sortWith{ p1, p2 ->
         when {
             // Both deadlines are null, compare by ID
             p1.deadline == null && p2.deadline == null -> p1.id.compareTo(p2.id)
@@ -100,7 +100,7 @@ fun addToPolls(pollList: MutableList<Poll>, poll: Poll) {
             // Both deadlines are in the future, order by soonest first
             else -> p1.deadline.compareTo(p2.deadline)
         }
-    })
+    }
 }
 
 @Composable
