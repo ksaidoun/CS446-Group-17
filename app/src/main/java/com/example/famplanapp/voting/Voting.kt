@@ -61,7 +61,7 @@ var pollList = mutableListOf(
             PollOption("Chicken stir fry"),
             PollOption("Something else"),
             PollOption("Another option")),
-        LocalDateTime.now().plusDays(1)), // Poll ends in 1 day
+        LocalDateTime.now().plusHours(3)), // Poll ends in 1 day
     Poll(2,  User("Michael"),"How should we spend Family Day 2024?",
         listOf(
             PollOption("Go skiing"),
@@ -70,14 +70,37 @@ var pollList = mutableListOf(
         ),
         LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours
     Poll(2,  User("Dad"),"Poll question?",
-        listOf(PollOption("Option A"), PollOption("Option B"),
-            PollOption("Option C"), PollOption("Option D"), PollOption("Option E")),
-        LocalDateTime.now().plusHours(12)) // Poll ends in 12 hours,
+        listOf(
+            PollOption("Option A", 2),
+            PollOption("Option B", 1),
+            PollOption("Option C",3),
+            PollOption("Option D", 0),
+            PollOption("Option E", 1)),
+        LocalDateTime.now().minusDays(1)) // Poll ends in 12 hours,
 )
 
 fun addToPolls(pollList: MutableList<Poll>, poll: Poll) {
     pollList.add(poll)
-    /* TODO: Sort polls by deadline - soonest first */
+
+    val now = LocalDateTime.now()
+    pollList.sortWith(Comparator { p1, p2 ->
+        when {
+            // Both deadlines are null, compare by ID
+            p1.deadline == null && p2.deadline == null -> p1.id.compareTo(p2.id)
+            // Only the first deadline is null, the second goes first
+            p1.deadline == null -> 1
+            // Only the second deadline is null, the first goes first
+            p2.deadline == null -> -1
+            // Both deadlines are in the past, order by how long past
+            p1.deadline.isBefore(now) && p2.deadline.isBefore(now) -> p2.deadline.compareTo(p1.deadline)
+            // First deadline is in the past, the second goes first
+            p1.deadline.isBefore(now) -> 1
+            // Second deadline is in the past, the first goes first
+            p2.deadline.isBefore(now) -> -1
+            // Both deadlines are in the future, order by soonest first
+            else -> p1.deadline.compareTo(p2.deadline)
+        }
+    })
 }
 
 @Composable
@@ -138,15 +161,20 @@ fun PollCard(poll: Poll) {
     val timeLeft = Duration.between(LocalDateTime.now(), poll.deadline)
 
     // colors for active vs inactive polls
-    val backgroundColor = if (timeLeft.isNegative) Color.LightGray else Color(lightPurple)
-    val contentColor = if (timeLeft.isNegative) Color.DarkGray else Color(darkPurple)
+    val bColor = if (timeLeft.isNegative) Color.LightGray else Color(lightPurple)
+    val cColor = if (timeLeft.isNegative) Color.DarkGray else Color(darkPurple)
+
+    // votes
+    var votedOption by remember { mutableStateOf<String?>(null) }
+    val maxVotes = if (timeLeft.isNegative) poll.options.maxOf { it.votes } else 0
+
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp, 20.dp, 20.dp, 0.dp),
         elevation = 4.dp,
-        backgroundColor = backgroundColor,
+        backgroundColor = bColor,
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -161,24 +189,30 @@ fun PollCard(poll: Poll) {
                 Text(
                     text = "From ${poll.owner.name}:",
                     style = MaterialTheme.typography.subtitle2,
-                    color = contentColor
+                    color = cColor
                 )
 
                 // time left to vote
                 Text(
-                    text = if (timeLeft.isNegative) "Poll ended" else "${Duration.between(LocalDateTime.now(), poll.deadline).toHours()}h left",
+                    text = if (timeLeft.isNegative) "Poll ended" else "${
+                        Duration.between(
+                            LocalDateTime.now(),
+                            poll.deadline
+                        ).toHours()
+                    }h left",
                     style = MaterialTheme.typography.subtitle2,
-                    color = contentColor,
+                    color = cColor,
                     textAlign = TextAlign.End
                 )
             }
 
             // poll title
-            Text(text = poll.subject,
+            Text(
+                text = poll.subject,
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp,
-                    color = contentColor,
+                    color = cColor,
                     textAlign = TextAlign.Center
                 ),
                 modifier = Modifier
@@ -188,27 +222,69 @@ fun PollCard(poll: Poll) {
 
             // poll option buttons
             poll.options.forEach { option ->
-                Button(
-                    onClick = { /* TODO: Implement vote action */ },
-                    enabled = !timeLeft.isNegative,
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.White,
-                        contentColor = contentColor,
-                        disabledBackgroundColor = Color.White,
-                        disabledContentColor = contentColor
-                    ),
-                    shape = RoundedCornerShape(8.dp),
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(2.dp)
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        option.option,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+
+                    if (timeLeft.isNegative) {
+                        val isWinningOption = timeLeft.isNegative && option.votes == maxVotes
+                        val buttonBackgroundColor = if (isWinningOption) Color(0xFFC9BFD6) else Color(0xFFEBEAE8)
+
+                        Button(
+                            onClick = {},
+                            colors = ButtonDefaults.buttonColors(
+                                disabledBackgroundColor = buttonBackgroundColor,
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            enabled = false,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 8.dp)
+                        ) {
+                            Text(
+                                text = option.option,
+                                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp),
+                                color = cColor
+                            )
+                        }
+
+                        // Display vote count for inactive polls
+                        Text(
+                            "${option.votes}",
+                            style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp),
+                            color = cColor
                         )
-                    )
+                    } else {
+                        val isSelected = option.option == votedOption
+                        val buttonBackgroundColor = if (isSelected) Color.LightGray else Color.White
+                        Button(
+                            onClick = {
+                                if (!timeLeft.isNegative && votedOption == null) {
+                                    votedOption = option.option
+                                }
+                            },
+                            enabled = !timeLeft.isNegative,
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = buttonBackgroundColor,
+                                contentColor = cColor
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = option.option,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -218,7 +294,6 @@ fun PollCard(poll: Poll) {
 @Composable
 fun PollList(polls: List<Poll>) {
     val backgroundColor = Color(darkPurple)
-
     Surface(color = backgroundColor, modifier = Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.padding(bottom = 70.dp)) {
             items(polls) { poll ->
@@ -228,116 +303,118 @@ fun PollList(polls: List<Poll>) {
     }
 }
 
+
 @Composable
 fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
-    var title by remember { mutableStateOf("") }
-    var options by remember { mutableStateOf(listOf("", "")) }
-    var deadline by remember { mutableStateOf(LocalDateTime.now().plusDays(1)) }
+        var title by remember { mutableStateOf("") }
+        var options by remember { mutableStateOf(listOf("", "")) }
+        var deadline by remember { mutableStateOf(LocalDateTime.now().plusDays(1)) }
 
-    Column(
-        modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Create a New Poll", style = MaterialTheme.typography.h6)
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Create a New Poll", style = MaterialTheme.typography.h6)
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // title
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Poll Title") },
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.White,
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // options
-        options.forEachIndexed { index, option ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            // title
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Poll Title") },
                 modifier = Modifier.fillMaxWidth(),
-
-            ) {
-                OutlinedTextField(
-                    value = option,
-                    onValueChange = { newOption ->
-                        val mutableOptions = options.toMutableList()
-                        mutableOptions[index] = newOption
-                        options = mutableOptions
-                    },
-                    label = { Text("Option ${index + 1}") },
-                    modifier = Modifier.width(200.dp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.White,
-                    )
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.White,
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+            )
 
-                // if more than two options, show 'delete' button
-                if (options.size > 2) {
-                    IconButton(onClick = {
-                        options = options.toMutableList().apply { removeAt(index) }
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Remove option")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // options
+            options.forEachIndexed { index, option ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+
+                    ) {
+                    OutlinedTextField(
+                        value = option,
+                        onValueChange = { newOption ->
+                            val mutableOptions = options.toMutableList()
+                            mutableOptions[index] = newOption
+                            options = mutableOptions
+                        },
+                        label = { Text("Option ${index + 1}") },
+                        modifier = Modifier.width(200.dp),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        colors = TextFieldDefaults.textFieldColors(
+                            backgroundColor = Color.White,
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // if more than two options, show 'delete' button
+                    if (options.size > 2) {
+                        IconButton(onClick = {
+                            options = options.toMutableList().apply { removeAt(index) }
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Remove option")
+                        }
                     }
                 }
             }
-        }
 
-        // if less than 6 options, show "add option" button
-        if (options.size < 6) {
-            Button(onClick = {
-                options = options.toMutableList().apply { add("") }
-            }) {
-                Text("Add Option")
+            // if less than 6 options, show "add option" button
+            if (options.size < 6) {
+                Button(onClick = {
+                    options = options.toMutableList().apply { add("") }
+                }) {
+                    Text("Add Option")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+            ) {
+                val dueDate = TasksDatePicker("Due Date", null)
+                Spacer(modifier = Modifier.width(8.dp))
+                val dueTime = TasksTimePicker()
+                deadline = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    if (title.isNotBlank() && options.all { it.isNotBlank() }) {
+                        onPollCreated(
+                            Poll(
+                                id = 0,// refactor this when database is implemented
+                                owner = User("CurrentUser"),
+                                subject = title,
+                                options = options.map { PollOption(it) },
+                                deadline = deadline
+                            )
+                        )
+                    }
+
+                },
+                modifier = Modifier
+                    .align(Alignment.End),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.White,
+                    contentColor = Color(darkPurple)
+                )
+            ) {
+                Text(
+                    "Create",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                )
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row (
-        ) {
-            var dueDate = TasksDatePicker("Due Date", null)
-            Spacer(modifier = Modifier.width(8.dp))
-            var dueTime = TasksTimePicker()
-            deadline = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                if (title.isNotBlank() && options.all { it.isNotBlank() }) {
-                    onPollCreated(
-                        Poll(
-                            id = 0,// refactor this when database is implemented
-                            owner = User("CurrentUser"), // will get user object eventually
-                            subject = title,
-                            options = options.map { PollOption(it) },
-                            deadline = deadline
-                        )
-                    )
-                }
-
-            },
-            modifier = Modifier
-                .align(Alignment.End),
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = Color.White,
-                contentColor = Color(darkPurple)
-            )
-        ) {
-            Text(
-                "Create",
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            )
-        }
     }
-}
 

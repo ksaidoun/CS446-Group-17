@@ -8,7 +8,8 @@ data class Poll(
     val owner: User,
     val subject: String,
     val options: List<PollOption>,
-    val deadline: LocalDateTime? = null
+    val deadline: LocalDateTime? = null,
+    //var voters: List<User> = emptyList()
 )
 
 data class PollOption(

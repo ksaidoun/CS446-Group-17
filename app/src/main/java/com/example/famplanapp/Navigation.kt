@@ -40,7 +40,6 @@ import com.example.famplanapp.tasks.tasksList
 import com.example.famplanapp.voting.PollCreationScreen
 import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.voting.Voting
-import com.example.famplanapp.voting.samplePosts
 
 // TEST VALUES FOR USERS & FAMILY
 val tempSettings: AppSettings = AppSettings(false, "Push")
