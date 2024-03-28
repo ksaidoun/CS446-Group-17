@@ -75,6 +75,11 @@ var pollList = mutableListOf(
         LocalDateTime.now().plusHours(12)) // Poll ends in 12 hours,
 )
 
+fun addToPolls(pollList: MutableList<Poll>, poll: Poll) {
+    pollList.add(poll)
+    /* TODO: Sort polls by deadline - soonest first */
+}
+
 @Composable
 fun Voting(innerPadding: PaddingValues) {
     var showPollCreationDialog by remember { mutableStateOf(false) }
@@ -109,7 +114,7 @@ fun Voting(innerPadding: PaddingValues) {
                     .background(Color.White)
             ) {
                 PollCreationScreen(onPollCreated = { poll ->
-                    pollList.add(poll)
+                    addToPolls(pollList, poll)
                     showPollCreationDialog = false
                 })
                 Button(
@@ -209,27 +214,6 @@ fun PollCard(poll: Poll) {
         }
     }
 }
-
-val samplePosts = listOf(
-    Poll(1, User("Julia"),"What should we have for dinner tonight?",
-        listOf(
-            PollOption("Chili with rice"),
-            PollOption("Chicken stir fry"),
-            PollOption("Something else"),
-            PollOption("Another option")),
-        LocalDateTime.now().plusDays(1)), // Poll ends in 1 day
-    Poll(2,  User("Michael"),"How should we spend Family Day 2024?",
-        listOf(
-            PollOption("Go skiing"),
-            PollOption("Go to Niagara Falls"),
-            PollOption("Watch a movie")
-        ),
-        LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours
-    Poll(2,  User("Dad"),"Poll question?",
-        listOf(PollOption("Option A"), PollOption("Option B"),
-            PollOption("Option C"), PollOption("Option D"), PollOption("Option E")),
-        LocalDateTime.now().plusHours(12)) // Poll ends in 12 hours,
-)
 
 @Composable
 fun PollList(polls: List<Poll>) {
