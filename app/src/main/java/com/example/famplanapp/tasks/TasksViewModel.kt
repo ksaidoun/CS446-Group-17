@@ -1,7 +1,5 @@
 package com.example.famplanapp.tasks
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import com.example.famplanapp.currUser
 import com.example.famplanapp.globalClasses.User
@@ -65,16 +63,16 @@ class TasksViewModel: ViewModel() {
         currDisplayedTasks.clear()
         when (currFilter) {
             "My Tasks" -> {
-                currDisplayedTasks = tasksList.filter { it.assignee?.email == currUser.email }.toMutableStateList()
+                currDisplayedTasks = tasksList.filter { it.assignee?.email == currUser.email }.toMutableList()
             }
             "All Tasks" -> {
-                currDisplayedTasks = tasksList.toMutableStateList()
+                currDisplayedTasks = tasksList.toMutableList()
             }
             "Unassigned" -> {
-                currDisplayedTasks = tasksList.filter { it.assignee?.name == "None" }.toMutableStateList()
+                currDisplayedTasks = tasksList.filter { it.assignee?.name == "None" }.toMutableList()
             }
             else -> {
-                currDisplayedTasks = tasksList.toMutableStateList()
+                currDisplayedTasks = tasksList.toMutableList()
             }
         }
         currDisplayedTasks.sortBy { it.dueDate }
