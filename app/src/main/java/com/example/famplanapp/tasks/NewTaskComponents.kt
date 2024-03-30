@@ -156,7 +156,7 @@ fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDate
 }
 
 @Composable
-fun TasksTimePicker(defaultDate: LocalDateTime?): Pair<Int, Int> {
+fun TasksTimePicker(defaultDate: LocalDateTime? = null): Pair<Int, Int> {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
     var selectedTimeText by remember { mutableStateOf("") }
