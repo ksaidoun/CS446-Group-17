@@ -54,9 +54,8 @@ import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Tasks
 import com.example.famplanapp.tasks.tasksList
-import com.example.famplanapp.voting.PollCreationScreen
-import com.example.famplanapp.voting.PollList
-import com.example.famplanapp.voting.samplePosts
+
+import com.example.famplanapp.voting.Voting
 
 // TEST VALUES FOR USERS & FAMILY
 val tempSettings: AppSettings = AppSettings(false, "Push")
@@ -230,48 +229,7 @@ fun BottomNavBar(){
                 Tasks(innerPadding)
             }
             composable("Voting") {
-                var showPollCreationDialog by remember { mutableStateOf(false) }
-
-                // Screen content for Voting
-                Box(modifier = Modifier.fillMaxSize()) {
-
-                    PollList(samplePosts)
-
-                    Box(
-                        modifier = Modifier
-                            .padding(16.dp, 76.dp)
-                            .size(56.dp)
-                            .background(MaterialTheme.colors.primary, CircleShape)
-                            .clickable { showPollCreationDialog = true }
-                            .align(Alignment.BottomEnd)
-                    ) {
-                        Text(
-                            text = "+",
-                            style = TextStyle(
-                                color = MaterialTheme.colors.background,
-                                fontSize = 24.sp
-                            ),
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
-                }
-                if (showPollCreationDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showPollCreationDialog = false },
-                        text = {
-                            PollCreationScreen(onPollCreated = { poll ->
-                                // TODO: Handle the created poll (e.g., add it to your list of polls)
-                                showPollCreationDialog = false
-                            })
-                        },
-                        confirmButton = {},
-                        dismissButton = {
-                            Button(onClick = { showPollCreationDialog = false }) {
-                                Text("Cancel")
-                            }
-                        }
-                    )
-                }
+                Voting(innerPadding)
             }
             composable("Gallery") {
                 // Screen content for Gallery
