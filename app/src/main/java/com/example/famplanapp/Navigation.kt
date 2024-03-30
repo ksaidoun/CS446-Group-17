@@ -56,6 +56,8 @@ import com.example.famplanapp.voting.Voting
 // TEST VALUES FOR USERS & FAMILY
 val tempSettings: AppSettings = AppSettings(false, "Push")
 val tempUser: User = User(
+    "",
+    "",
     "David Smith",
     "David",
     "testemail@gmail.com",
@@ -64,8 +66,9 @@ val tempUser: User = User(
     "Admin",
     tempSettings)
 var tempUsers: List<User> = listOf(tempUser)
-var family: Family = Family(1, tempSettings, tempUsers)
 var currUser = tempUser
+var family: Family = Family("1", tempSettings, tempUsers)
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -238,25 +241,20 @@ fun BottomNavBar(){
                 // Screen content for Setting
             }
         }
+        /*
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
-            //modifier = Modifier.align(Alignment.TopEnd)
         ) {
-            DropdownMenuItem(onClick = {
-                // Handle click on dropdown item 1
-                menuExpanded = false
-            }) {
-                Text("Dropdown Item 1")
+            familyMembers.forEach { member ->
+                DropdownMenuItem(onClick = {
+                    menuExpanded = false
+                }) {
+                    Text(member.name)
+                }
             }
-            DropdownMenuItem(onClick = {
-                // Handle click on dropdown item 2
-                menuExpanded = false
-            }) {
-                Text("Dropdown Item 2")
-            }
-            // Add more dropdown items as needed
         }
+         */
     }
 }
 

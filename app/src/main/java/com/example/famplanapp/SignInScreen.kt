@@ -27,6 +27,16 @@ import androidx.compose.ui.unit.sp
 import com.example.famplanapp.*
 import com.example.famplanapp.R
 import com.google.firebase.auth.FirebaseAuth
+import com.example.famplanapp.globalClasses.AppSettings
+import com.example.famplanapp.globalClasses.Family
+import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.tasks.Task
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SignInButton(onClickAction: () -> Unit) {
@@ -36,7 +46,7 @@ fun SignInButton(onClickAction: () -> Unit) {
 }
 
 @Composable
-fun SignUpButton(onClickAction: () -> Unit, onJoinFamilyChecked: (Boolean) -> Unit, joinFamily: Boolean, familyCodeText: String, onFamilyCodeChange: (String) -> Unit) {
+fun SignUpButton(onClickAction: () -> Unit, onJoinFamilyChecked: (Boolean) -> Unit, joinFamily: Boolean, familyCodeText: String, onFamilyCodeChange: (String) -> Unit, familyId: String?) {
     Column {
         Button(onClick = onClickAction) {
             Text("Sign up", fontSize = 16.sp)
@@ -65,15 +75,23 @@ fun SignUpButton(onClickAction: () -> Unit, onJoinFamilyChecked: (Boolean) -> Un
                 }
             )
             Spacer(modifier = Modifier.height(16.dp))
+        }else {
+            familyId?.let { id ->
+                Text(
+                    "New Family ID: $id",
+                    fontSize = 16.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
-
 
 @Composable
 fun SignInScreen() {
     val auth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+    val database = Firebase.database
 
     var signInClicked by remember { mutableStateOf(false) }
     var signUpClicked by remember { mutableStateOf(false) }
@@ -83,6 +101,11 @@ fun SignInScreen() {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var joinFamily by remember { mutableStateOf(false) }
     var familyCodeText by remember { mutableStateOf("") }
+    var currentUser by remember {mutableStateOf<User?>(null)}
+    var createFamily by remember { mutableStateOf(false) }
+
+    val familyRef = Firebase.database.getReference("families")
+    val familyId = familyRef.push().key
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -150,6 +173,15 @@ fun SignInScreen() {
                                 auth.createUserWithEmailAndPassword(emailText, passwordText)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
+                                            currentUser = User("",familyId?: "","", "", emailText, emptyList(), "#dc143c", "User", tempSettings)
+                                            if (joinFamily) {
+                                                joinFamilyToFirebase(database, familyCodeText, emailText)
+                                            } else {
+                                                createFamilyInFirebase(database, familyId,
+                                                    currentUser!!
+                                                )
+                                            }
+                                            saveUserToFirebase(database,emailText,familyId?: "")
                                             signInClicked = true
                                         } else {
                                             Log.e(TAG, "createUserWithEmailAndPassword failed: ${task.exception}")
@@ -170,7 +202,8 @@ fun SignInScreen() {
                     onJoinFamilyChecked = { checked -> joinFamily = checked },
                     joinFamily = joinFamily,
                     familyCodeText = familyCodeText,
-                    onFamilyCodeChange = { newText -> familyCodeText = newText }
+                    onFamilyCodeChange = { newText -> familyCodeText = newText },
+                    familyId = familyId
                 )
             } else {
                 Text(
@@ -201,6 +234,7 @@ fun SignInScreen() {
                             auth.signInWithEmailAndPassword(emailText, passwordText)
                                 .addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
+                                        currentUser = User("",familyId?: "","", "", emailText, emptyList(), "#dc143c", "User", tempSettings)
                                         signInClicked = true
                                     } else {
                                         Log.w(TAG, "signInWithEmail:failure", task.exception)
@@ -227,6 +261,73 @@ fun SignInScreen() {
     }
 }
 
+private fun saveUserToFirebase(database: FirebaseDatabase, email: String, familyId: String?) {
+    val usersRef = database.getReference("users")
+
+    val userId = email.replace(".", ",")
+
+    val user = User(
+        familyId = familyId ?: "",
+        userId = userId,
+        email = email
+    )
+
+    usersRef.child(userId).setValue(user)
+        .addOnSuccessListener {
+            Log.d(TAG, "User data saved successfully")
+        }
+        .addOnFailureListener { exception ->
+            Log.e(TAG, "Error saving user data: $exception")
+        }
+}
+
+private fun createFamilyInFirebase(database: FirebaseDatabase, familyId: String?, currentUser: User) {
+    val familyRef = database.getReference("families")
+
+    val appSettings = AppSettings()
+
+    val newFamily = Family(
+        id = familyId ?: "",
+        settings = appSettings,
+        users = listOf(currentUser)
+    )
+
+    familyRef.child(familyId ?: "").setValue(newFamily)
+        .addOnSuccessListener {
+            Log.d(TAG, "Family created successfully")
+        }
+        .addOnFailureListener { exception ->
+            Log.e(TAG, "Error creating family: $exception")
+        }
+}
+
+private fun joinFamilyToFirebase(database: FirebaseDatabase, familyCode: String, userEmail: String) {
+    val familyRef = database.getReference("families")
+
+    familyRef.orderByChild("familyCode").equalTo(familyCode)
+        .addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val familyId = snapshot.children.first().key.toString()
+
+                    familyRef.child(familyId).child("members").push().setValue(userEmail)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "User added to family successfully")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e(TAG, "Error adding user to family: $exception")
+                        }
+                } else {
+                    Log.e(TAG, "Family with provided code not found")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG, "Error querying family: $error")
+            }
+        })
+}
+
 private fun isValidEmail(email: String): Boolean {
     return Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
@@ -234,3 +335,11 @@ private fun isValidEmail(email: String): Boolean {
 private fun isValidPassword(password: String): Boolean {
     return password.length >= 6
 }
+
+/*
+Next steps for Lauren:
+- modify Navigation.kt so that in the dropdownmenu displays the familyMembers and retrieved from firebase families
+  with the same familyId as the currentUser from the SignInScreen.kt
+- figure out how to add user and families to database
+- Add 2 hours to timelog for: got start of adding users and families to database working but need to create those tables in the database first
+ */
