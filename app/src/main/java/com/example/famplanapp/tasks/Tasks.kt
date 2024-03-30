@@ -169,12 +169,22 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 16.dp)
                 )
-                Text(
-                    text = "Due $formattedDateTime",
-                    style = TextStyle(fontSize = 16.sp),
-                    color = dateColor,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                if (task.dueDate != null) {
+                    Text(
+                        text = "Due $formattedDateTime",
+                        style = TextStyle(fontSize = 16.sp),
+                        color = dateColor,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                } else {
+                    Text(
+                        text = "No due date",
+                        style = TextStyle(fontSize = 16.sp),
+                        color = Color.Black,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+
             }
         }
         Text(

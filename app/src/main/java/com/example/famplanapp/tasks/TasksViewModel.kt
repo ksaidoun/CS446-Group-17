@@ -63,19 +63,21 @@ class TasksViewModel: ViewModel() {
         currDisplayedTasks.clear()
         when (currFilter) {
             "My Tasks" -> {
-                currDisplayedTasks = tasksList.filter { it.assignee?.email == currUser.email }.toMutableList()
+                currDisplayedTasks.addAll(tasksList.filter { it.assignee?.email == currUser.email })
             }
             "All Tasks" -> {
-                currDisplayedTasks = tasksList.toMutableList()
+                currDisplayedTasks.addAll(tasksList)
             }
             "Unassigned" -> {
-                currDisplayedTasks = tasksList.filter { it.assignee?.name == "None" }.toMutableList()
+                currDisplayedTasks.addAll(tasksList.filter { it.assignee?.name ?: "None" == "None" })
             }
             else -> {
-                currDisplayedTasks = tasksList.toMutableList()
+                currDisplayedTasks.addAll(tasksList)
             }
         }
-        currDisplayedTasks.sortBy { it.dueDate }
+        if (currDisplayedTasks.isNotEmpty()) {
+            currDisplayedTasks.sortBy { it.dueDate }
+        }
         return currDisplayedTasks
     }
 }
