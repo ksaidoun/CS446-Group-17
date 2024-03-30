@@ -50,6 +50,7 @@ import com.example.famplanapp.darkPurple
 import com.example.famplanapp.family
 import com.example.famplanapp.globalClasses.User
 import java.text.SimpleDateFormat
+import java.time.DateTimeException
 import java.time.LocalDateTime
 import java.util.Calendar
 import java.util.Locale
@@ -146,7 +147,12 @@ fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDate
             Text(text = defaultText)
         }
     }
-    return LocalDateTime.of(newYear, newMonth, newDay, 0, 0)
+    try {
+        return LocalDateTime.of(newYear, newMonth, newDay, 0, 0)
+    } catch (e: DateTimeException) {
+        // Handle the invalid date gracefully, e.g., return null or a default date
+        return defaultDate
+    }
 }
 
 @Composable
