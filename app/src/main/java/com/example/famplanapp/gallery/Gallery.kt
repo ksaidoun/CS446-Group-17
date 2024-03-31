@@ -6,9 +6,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.famplanapp.currUser
 import com.example.famplanapp.firestore
 import com.example.famplanapp.storage
 import com.google.firebase.Timestamp
@@ -46,12 +45,7 @@ fun Gallery(photos: MutableList<Int>){
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(top = 60.dp, bottom = 60.dp)) {
-        Column (verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(text = "Default Gallery")
-            DefaultPhotoGallery(photos)
-            Text(text = "User Uploaded Gallery")
-            UserPhotoGallery()
-        }
+        UserPhotoGallery()
         Box(
             modifier = Modifier
                 .padding(16.dp)
@@ -79,8 +73,8 @@ fun updateFireStore(filename: String, ref: String) {
     firestore.collection("gallery").document(filename).set(
         hashMapOf(
             "time" to Timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN), 0),
-            "ref" to ref
-            /*TODO: Add user name or id here*/
+            "ref" to ref,
+            "user" to currUser.name
         )
     )    .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully written!") }
         .addOnFailureListener { e -> Log.w(TAG, "Error writing document", e) }
