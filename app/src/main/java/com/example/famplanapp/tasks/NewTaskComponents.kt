@@ -58,6 +58,7 @@ import java.util.Locale
 import com.google.firebase.Timestamp
 import java.time.Instant
 import java.time.ZoneId
+import java.util.Date
 
 
 @Composable
@@ -84,7 +85,7 @@ fun ReadonlyOutlinedTextField(
         )
     }
 }
-
+// date related helper functions
 fun LocalDateTime.toCalendar(): Calendar {
     val calendar = Calendar.getInstance()
     calendar.set(Calendar.YEAR, this.year)
@@ -99,15 +100,15 @@ fun LocalDateTime.toCalendar(): Calendar {
 
 fun localDateTimeToTimestamp(localDateTime: LocalDateTime?): Timestamp? {
     if (localDateTime == null) return null
-    val epochSeconds = localDateTime?.toEpochSecond(ZoneOffset.UTC)
-    val nanoSeconds = localDateTime?.nano
-    return Timestamp(epochSeconds!!, nanoSeconds!!)
+    val zoneId = ZoneId.systemDefault()
+    val instant = localDateTime.atZone(zoneId).toInstant()
+    return Timestamp(Date.from(instant))
 }
 
 fun timestampToLocalDateTime(timestamp: Timestamp?): LocalDateTime? {
     if (timestamp == null) return null
-    val instant = Instant.ofEpochSecond(timestamp.seconds, timestamp.nanoseconds.toLong())
-    return LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+    val instant = timestamp.toDate().toInstant()
+    return instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
 }
 
 @Composable
@@ -122,13 +123,16 @@ fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDate
     var month = calendar[Calendar.MONTH]
     var day = calendar[Calendar.DAY_OF_MONTH]
 
-    var newYear by remember { mutableIntStateOf(year) }
-    var newMonth by remember { mutableIntStateOf(month) }
-    var newDay by remember { mutableIntStateOf(day) }
+    var newYear by remember { mutableStateOf(year) }
+    var newMonth by remember { mutableStateOf(month) }
+    var newDay by remember { mutableStateOf(day) }
 
     if (defaultDate != null) {
+        year = defaultDate.year
+        month = defaultDate.monthValue - 1
+        day = defaultDate.dayOfMonth
         newYear = defaultDate.year
-        newMonth = defaultDate.monthValue
+        newMonth = defaultDate.monthValue - 1
         newDay = defaultDate.dayOfMonth
         selectedDate = defaultDate.toCalendar()
         selectedDateText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)

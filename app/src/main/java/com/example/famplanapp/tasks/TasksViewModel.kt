@@ -52,24 +52,26 @@ class TasksViewModel: ViewModel() {
     }
 
     fun addTask(task: Task) {
-        val currentTasks = _tasksList.value?.toMutableList() ?: mutableListOf()
-        currentTasks.add(task)
-        _tasksList.value = currentTasks
-        if (task.assignee?.name != "None" || task.assignee != null) {
-            task.assignee?.tasksId?.add(task.id)
-        }
+        val documentReference = firestore.collection("tasks").document()
+        task.id = documentReference.id // Assign the document reference id to task id
+
         // update database
-        firestore.collection("tasks")
-            .add(task)
-            .addOnSuccessListener { documentReference ->
-                val taskId = documentReference.id
-                task.id = taskId
+        documentReference
+            .set(task)
+            .addOnSuccessListener {
                 Log.d(TAG, "Task added with ID: ${documentReference.id}")
+
+                val currentTasks = _tasksList.value?.toMutableList() ?: mutableListOf()
+                currentTasks.add(task)
+                _tasksList.value = currentTasks
+                if (task.assignee?.name != "None" || task.assignee != null) {
+                    task.assignee?.tasksId?.add(task.id)
+                }
+                setCurrDisplayedTasks()
             }
             .addOnFailureListener { e ->
                 Log.w(TAG, "Error adding task", e)
             }
-
         setCurrDisplayedTasks()
     }
 
