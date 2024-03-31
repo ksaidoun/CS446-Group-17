@@ -58,6 +58,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.database.ktx.database
+import com.example.famplanapp.firestore
+import com.google.firebase.firestore.FieldPath
 
 // TEST VALUES FOR USERS & FAMILY
 /*
@@ -253,44 +255,26 @@ fun BottomNavBar(currentUser: User){
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
         ) {
-            // Retrieve family members from Firebase
-            val familyMembers = remember { mutableStateListOf<User>() }
-
-            val familyRef = Firebase.database.getReference("families")
-            familyRef.child(currentUser.familyId).child("userIds")
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        snapshot.children.forEach { memberSnapshot ->
-                            val memberId = memberSnapshot.getValue(String::class.java)
-                            memberId?.let { memberId ->
-                                val userRef = Firebase.database.getReference("users")
-                                userRef.child(memberId)
-                                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                                        override fun onDataChange(userSnapshot: DataSnapshot) {
-                                            val user = userSnapshot.getValue(User::class.java)
-                                            user?.let { familyMembers.add(it) }
-                                        }
-
-                                        override fun onCancelled(error: DatabaseError) {
-                                            Log.e("Navigation", "Error fetching user: $error")
-                                        }
-                                    })
-                            }
-                        }
+            var members by remember { mutableStateOf<List<String>>(emptyList()) }
+            val myfamilyDoc = firestore.collection("families").document(currentUser.familyId).get()
+                .addOnSuccessListener { documentSnapshot ->
+                    val data = documentSnapshot.data
+                    if (data != null) {
+                        members = data["userIds"] as List<String>
+                    } else {
+                        // Handle case where document doesn't exist or doesn't contain expected data
                     }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        Log.e("Navigation", "Error fetching family members: $error")
-                    }
-                })
-
+                }
+                .addOnFailureListener { exception ->
+                    // Handle failure
+                }
             // Populate dropdown menu with family members
-            familyMembers.forEach { member ->
+            members.forEach { member ->
                 DropdownMenuItem(onClick = {
                     menuExpanded = false
                     // Do something when a family member is selected
                 }) {
-                    Text(member.name)
+                    Text(member)
                 }
             }
         }
