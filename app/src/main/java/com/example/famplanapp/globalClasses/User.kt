@@ -10,5 +10,4 @@ class User(
     var colour: String = "",
     var role: String = "",
     settings: AppSettings = AppSettings()) {
-
 }

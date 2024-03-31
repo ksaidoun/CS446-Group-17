@@ -89,7 +89,6 @@ fun CalendarUI(
                 }
             }
         }
-
         LazyColumn(Modifier.fillMaxSize().padding(bottom = 50.dp)) {
             items(24) { rowIndex ->
                 Row(Modifier.fillMaxWidth()) {
