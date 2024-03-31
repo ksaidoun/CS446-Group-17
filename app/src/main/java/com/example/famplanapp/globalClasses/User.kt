@@ -11,4 +11,3 @@ data class User(
     var role: String = "",
     var settingId: String = ""
 )
-

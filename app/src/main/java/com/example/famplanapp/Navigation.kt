@@ -26,6 +26,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,6 +52,7 @@ import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Task
 import com.example.famplanapp.tasks.Tasks
+import com.example.famplanapp.tasks.tasksList
 import com.example.famplanapp.voting.PollCreationScreen
 import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.tasks.TasksViewModel
