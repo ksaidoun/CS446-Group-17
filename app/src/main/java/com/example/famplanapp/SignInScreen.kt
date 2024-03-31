@@ -41,6 +41,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.example.famplanapp.firestore
 import com.google.firebase.firestore.AggregateSource
+import com.google.firebase.firestore.FieldValue
 
 @Composable
 fun SignInButton(onClickAction: () -> Unit) {
@@ -202,13 +203,13 @@ fun SignInScreen() {
                                 auth.createUserWithEmailAndPassword(emailText, passwordText)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
-                                            val user = User(uid, familyId,"", "", emailText, mutableListOf(), "#dc143c", "User", )
+                                            val user = User(uid, familyCodeText,"", "", emailText, mutableListOf(), "#dc143c", "User", )
                                             if (joinFamily) {
-                                                joinFamilyToFirebase(database, familyCodeText, emailText)
-                                                saveUserToFirebase(database,user)
+                                                currentUser = user
+                                                saveUserAndJoinFamilyToFirebase(context,user,familyCodeText)
                                             } else {
                                                 currentUser = user
-                                                createFamilyAndSaveUser(database, context, user)
+                                                createFamilyAndSaveUser(context, user)
                                             }
                                             signInClicked = true
                                         } else {
@@ -319,7 +320,7 @@ fun SignInScreen() {
     }
 }
 
-private fun createFamilyAndSaveUser(database: FirebaseDatabase, context: Context, user: User) {
+private fun createFamilyAndSaveUser(context: Context, user: User) {
     val familyId = user.familyId
 
     val newFamily = Family(familyId = familyId, userIds = mutableListOf(user.userId), settingsId = "")
@@ -341,62 +342,24 @@ private fun createFamilyAndSaveUser(database: FirebaseDatabase, context: Context
         }
 }
 
-private fun saveUserToFirebase(database: FirebaseDatabase, user: User) {
-    val userId = user.email.replace(".", ",")
-    val usersRef = database.getReference("users")
-    usersRef.child(userId).setValue(user)
+private fun saveUserAndJoinFamilyToFirebase(context: Context, user: User, familyCode: String, ) {
+    firestore.collection("users").document(user.userId).set(user)
         .addOnSuccessListener {
-            Log.d(TAG, "User data saved successfully")
+            Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+        }
+
+    firestore.collection("families").document(user.familyId).update("userIds", FieldValue.arrayUnion(user.userId))
+        .addOnSuccessListener {
+            Toast.makeText(context, "User added to family", Toast.LENGTH_LONG).show()
         }
         .addOnFailureListener { exception ->
-            Log.e(TAG, "Error saving user data: $exception")
+            Toast.makeText(context, "Failed to add user to family: $exception", Toast.LENGTH_LONG).show()
         }
 }
 
-private fun createFamilyInFirebase(database: FirebaseDatabase, familyId: String?, currentUser: User) {
-    val familyRef = database.getReference("families")
-
-    val newFamily = Family(
-        familyId = familyId ?: "",
-        settingsId = "",
-        userIds = mutableListOf(currentUser.userId)
-    )
-
-    familyRef.child(familyId ?: "").setValue(newFamily)
-        .addOnSuccessListener {
-            Log.d(TAG, "Family created successfully")
-        }
-        .addOnFailureListener { exception ->
-            Log.e(TAG, "Error creating family: $exception")
-        }
-}
-
-private fun joinFamilyToFirebase(database: FirebaseDatabase, familyCode: String, userEmail: String) {
-    val familyRef = database.getReference("families")
-
-    familyRef.orderByChild("familyCode").equalTo(familyCode)
-        .addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    val familyId = snapshot.children.first().key.toString()
-
-                    familyRef.child(familyId).child("members").push().setValue(userEmail)
-                        .addOnSuccessListener {
-                            Log.d(TAG, "User added to family successfully")
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e(TAG, "Error adding user to family: $exception")
-                        }
-                } else {
-                    Log.e(TAG, "Family with provided code not found")
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Error querying family: $error")
-            }
-        })
-}
 
 private fun isValidEmail(email: String): Boolean {
     return Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -408,10 +371,10 @@ private fun isValidPassword(password: String): Boolean {
 
 /*
 Next steps for Lauren:
-- add new user based on family code
-- Add 6 hours to timelog for:
+- Add 7 hours to timelog for:
 got start of adding users and families to database working but need to create those tables in the database first
 createFamilyAndSaveUser works
 can list the family in dropdown
 fixed existing user sign in
+user can add based on family code now
  */
