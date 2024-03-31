@@ -47,8 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.example.famplanapp.darkPurple
-import com.example.famplanapp.family
 import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.tempUsers
 import java.text.SimpleDateFormat
 import java.time.DateTimeException
 import java.time.LocalDateTime
@@ -225,9 +225,9 @@ fun AssigneeDropdown(prevAssignee: User? = null): User {
     // expanded state of the Text Field
     var expanded by remember { mutableStateOf(false) }
     // if "None" is selected as assignee
-    val noneUser = User("0", "None", "None")
+    val noneUser = User("", "", "None", "None")
     var assignees = mutableListOf(noneUser)
-    assignees.addAll(family.users)
+    assignees.addAll(tempUsers)
     // track selected assignee
     var selectedAssignee by remember { mutableStateOf(prevAssignee) }
     if (prevAssignee == null) selectedAssignee = assignees.first()

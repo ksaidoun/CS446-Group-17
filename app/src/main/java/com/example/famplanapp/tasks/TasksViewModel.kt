@@ -65,7 +65,7 @@ class TasksViewModel: ViewModel() {
                 currentTasks.add(task)
                 _tasksList.value = currentTasks
                 if (task.assignee?.name != "None" || task.assignee != null) {
-                    task.assignee?.tasksId?.add(task.id)
+                    task.assignee?.tasksIds?.add(task.id)
                 }
                 setCurrDisplayedTasks()
             }
@@ -79,7 +79,7 @@ class TasksViewModel: ViewModel() {
         val currentTasks = _tasksList.value?.toMutableList() ?: mutableListOf()
         currentTasks.remove(task)
         _tasksList.value = currentTasks
-        task.assignee?.tasksId?.remove(task.id)
+        task.assignee?.tasksIds?.remove(task.id)
 
         // update database
         firestore.collection("tasks")
@@ -104,7 +104,7 @@ class TasksViewModel: ViewModel() {
                  newIsCompleted: Boolean
                  ) {
         // remove task from previous assignee
-        task.assignee?.tasksId?.remove(task.id)
+        task.assignee?.tasksIds?.remove(task.id)
         val newTask = Task(task.id, newTitle, newDueDate, newRemindTime, newAssignee, newNotes, newIsCompleted)
 
         // update all information fields
@@ -117,7 +117,7 @@ class TasksViewModel: ViewModel() {
 
         // add task to new assignee
         if (task.assignee?.name != "None" || task.assignee != null) {
-            task.assignee?.tasksId?.add(task.id)
+            task.assignee?.tasksIds?.add(task.id)
         }
 
         // update database

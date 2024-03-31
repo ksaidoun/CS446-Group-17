@@ -2,6 +2,7 @@ package com.example.famplanapp
 
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,10 +54,13 @@ import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.tasks.TasksViewModel
 import com.example.famplanapp.voting.Voting
 
+
 // TEST VALUES FOR USERS & FAMILY
+
 val tempSettings: AppSettings = AppSettings(false, "Push")
 val tempUser: User = User(
     "1",
+    "",
     "David Smith",
     "David",
     "testemail@gmail.com",
@@ -65,12 +69,12 @@ val tempUser: User = User(
     "Admin"
 )
 var tempUsers: List<User> = listOf(tempUser)
-var family: Family = Family(1, tempSettings, tempUsers)
 var currUser = tempUser
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun BottomNavBar(){
+fun BottomNavBar(currentUser: User){
     val photos = mutableListOf<Int>()
     photos.addAll(listOf(
         R.drawable.test1,
@@ -242,21 +246,29 @@ fun BottomNavBar(){
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
-            //modifier = Modifier.align(Alignment.TopEnd)
         ) {
-            DropdownMenuItem(onClick = {
-                // Handle click on dropdown item 1
-                menuExpanded = false
-            }) {
-                Text("Dropdown Item 1")
+            var members by remember { mutableStateOf<List<String>>(emptyList()) }
+            val myfamilyDoc = firestore.collection("families").document(currentUser.familyId).get()
+                .addOnSuccessListener { documentSnapshot ->
+                    val data = documentSnapshot.data
+                    if (data != null) {
+                        members = data["userIds"] as List<String>
+                    } else {
+                        // Handle case where document doesn't exist or doesn't contain expected data
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    // Handle failure
+                }
+            // Populate dropdown menu with family members
+            members.forEach { member ->
+                DropdownMenuItem(onClick = {
+                    menuExpanded = false
+                    // Do something when a family member is selected
+                }) {
+                    Text(member)
+                }
             }
-            DropdownMenuItem(onClick = {
-                // Handle click on dropdown item 2
-                menuExpanded = false
-            }) {
-                Text("Dropdown Item 2")
-            }
-            // Add more dropdown items as needed
         }
     }
 }

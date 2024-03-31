@@ -1,4 +1,5 @@
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.graphics.Color
 import android.util.Log
 import android.util.Patterns
@@ -27,6 +28,20 @@ import androidx.compose.ui.unit.sp
 import com.example.famplanapp.*
 import com.example.famplanapp.R
 import com.google.firebase.auth.FirebaseAuth
+import com.example.famplanapp.globalClasses.AppSettings
+import com.example.famplanapp.globalClasses.Family
+import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.tasks.Task
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import com.example.famplanapp.firestore
+import com.google.firebase.firestore.AggregateSource
+import com.google.firebase.firestore.FieldValue
 
 @Composable
 fun SignInButton(onClickAction: () -> Unit) {
@@ -36,7 +51,7 @@ fun SignInButton(onClickAction: () -> Unit) {
 }
 
 @Composable
-fun SignUpButton(onClickAction: () -> Unit, onJoinFamilyChecked: (Boolean) -> Unit, joinFamily: Boolean, familyCodeText: String, onFamilyCodeChange: (String) -> Unit) {
+fun SignUpButton(onClickAction: () -> Unit, onJoinFamilyChecked: (Boolean) -> Unit, joinFamily: Boolean, familyCodeText: String, onFamilyCodeChange: (String) -> Unit, familyId: String) {
     Column {
         Button(onClick = onClickAction) {
             Text("Sign up", fontSize = 16.sp)
@@ -65,15 +80,21 @@ fun SignUpButton(onClickAction: () -> Unit, onJoinFamilyChecked: (Boolean) -> Un
                 }
             )
             Spacer(modifier = Modifier.height(16.dp))
+        }else {
+                Text(
+                    "New Family ID: $familyId",
+                    fontSize = 16.sp
+                )
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
-
 
 @Composable
 fun SignInScreen() {
     val auth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+    val database = Firebase.database
 
     var signInClicked by remember { mutableStateOf(false) }
     var signUpClicked by remember { mutableStateOf(false) }
@@ -83,6 +104,38 @@ fun SignInScreen() {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var joinFamily by remember { mutableStateOf(false) }
     var familyCodeText by remember { mutableStateOf("") }
+    var currentUser by remember {mutableStateOf<User?>(null)}
+
+    var familyId = ""
+    var uid = ""
+
+    val query = firestore.collection("families")
+    val countQuery = query.count()
+    countQuery.get(AggregateSource.SERVER).addOnCompleteListener { task ->
+        if (task.isSuccessful) {
+            // Count fetched successfully
+            val snapshot = task.result
+            var c = snapshot.count + 1
+            familyId = "family" + c.toString()
+            Log.d(TAG, "Count: ${snapshot.count}")
+        } else {
+            Log.d(TAG, "Count failed: ", task.getException())
+        }
+    }
+
+    val queryU = firestore.collection("users")
+    val countQueryU = queryU.count()
+    countQueryU.get(AggregateSource.SERVER).addOnCompleteListener { task ->
+        if (task.isSuccessful) {
+            // Count fetched successfully
+            val snapshot = task.result
+            var c = snapshot.count + 1
+            uid = "user" + c.toString()
+            Log.d(TAG, "Count: ${snapshot.count}")
+        } else {
+            Log.d(TAG, "Count failed: ", task.getException())
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -90,7 +143,7 @@ fun SignInScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (signInClicked) {
-            BottomNavBar()
+            currentUser?.let{BottomNavBar(it)}
         } else {
             Image(
                 painter = painterResource(id = R.drawable.logowname),
@@ -150,6 +203,14 @@ fun SignInScreen() {
                                 auth.createUserWithEmailAndPassword(emailText, passwordText)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
+                                            val user = User(uid, familyCodeText,"", "", emailText, mutableListOf(), "#dc143c", "User", )
+                                            if (joinFamily) {
+                                                currentUser = user
+                                                saveUserAndJoinFamilyToFirebase(context,user,familyCodeText)
+                                            } else {
+                                                currentUser = user
+                                                createFamilyAndSaveUser(context, user)
+                                            }
                                             signInClicked = true
                                         } else {
                                             Log.e(TAG, "createUserWithEmailAndPassword failed: ${task.exception}")
@@ -170,7 +231,8 @@ fun SignInScreen() {
                     onJoinFamilyChecked = { checked -> joinFamily = checked },
                     joinFamily = joinFamily,
                     familyCodeText = familyCodeText,
-                    onFamilyCodeChange = { newText -> familyCodeText = newText }
+                    onFamilyCodeChange = { newText -> familyCodeText = newText },
+                    familyId = familyId
                 )
             } else {
                 Text(
@@ -201,7 +263,38 @@ fun SignInScreen() {
                             auth.signInWithEmailAndPassword(emailText, passwordText)
                                 .addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
-                                        signInClicked = true
+                                        firestore.collection("users").whereEqualTo("email",emailText).get()
+
+
+                                        val reference = firestore.collection("users").whereEqualTo("email",emailText)
+
+                                        reference.get().addOnSuccessListener { querySnapshot ->
+                                            if (!querySnapshot.isEmpty) {
+                                                val document = querySnapshot.documents[0]
+                                                val user = User(
+                                                    document.getString("userid") ?: "",
+                                                    document.getString("familyId") ?: "",
+                                                    document.getString("name") ?: "",
+                                                    document.getString("preferredName") ?: "",
+                                                    document.getString("email") ?: "",
+                                                    mutableListOf(),
+                                                    document.getString("colour") ?: "",
+                                                    document.getString("role") ?: "",
+                                                    document.getString("settingId") ?: ""
+                                                )
+
+                                                val taskIds = document.get("taskIds") as? MutableList<String>
+                                                if (taskIds != null) {
+                                                    user.tasksIds = taskIds
+                                                }
+                                                currentUser = user
+                                                signInClicked = true
+                                            }else{
+                                                val user = User(uid, familyId,"", "", emailText, mutableListOf(), "#dc143c", "User", )
+                                                currentUser = user
+                                                signInClicked = true
+                                            }
+                                        }
                                     } else {
                                         Log.w(TAG, "signInWithEmail:failure", task.exception)
                                         Toast.makeText(
@@ -227,6 +320,47 @@ fun SignInScreen() {
     }
 }
 
+private fun createFamilyAndSaveUser(context: Context, user: User) {
+    val familyId = user.familyId
+
+    val newFamily = Family(familyId = familyId, userIds = mutableListOf(user.userId), settingsId = "")
+
+    firestore.collection("users").document(user.userId).set(user)
+        .addOnSuccessListener {
+            Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+        }
+
+    firestore.collection("families").document(familyId).set(newFamily)
+        .addOnSuccessListener {
+            Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+        }
+}
+
+private fun saveUserAndJoinFamilyToFirebase(context: Context, user: User, familyCode: String, ) {
+    firestore.collection("users").document(user.userId).set(user)
+        .addOnSuccessListener {
+            Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+        }
+
+    firestore.collection("families").document(user.familyId).update("userIds", FieldValue.arrayUnion(user.userId))
+        .addOnSuccessListener {
+            Toast.makeText(context, "User added to family", Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener { exception ->
+            Toast.makeText(context, "Failed to add user to family: $exception", Toast.LENGTH_LONG).show()
+        }
+}
+
+
 private fun isValidEmail(email: String): Boolean {
     return Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
@@ -234,3 +368,13 @@ private fun isValidEmail(email: String): Boolean {
 private fun isValidPassword(password: String): Boolean {
     return password.length >= 6
 }
+
+/*
+Next steps for Lauren:
+- Add 7 hours to timelog for:
+got start of adding users and families to database working but need to create those tables in the database first
+createFamilyAndSaveUser works
+can list the family in dropdown
+fixed existing user sign in
+user can add based on family code now
+ */
