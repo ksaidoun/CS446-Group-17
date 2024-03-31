@@ -4,6 +4,8 @@ import SignInScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.ViewModelProvider
+import com.example.famplanapp.tasks.TasksViewModel
 import com.example.famplanapp.ui.theme.FamPlanAppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -21,6 +23,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val tasksViewModel = ViewModelProvider(this)[TasksViewModel::class.java]
+        tasksViewModel.tasksList.observe(this) {
+            // Update UI with the fetched tasks
+            //tasksViewModel.setCurrDisplayedTasks()
+        }
         setContent {
             FamPlanAppTheme {
                 SignInScreen()

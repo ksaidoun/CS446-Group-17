@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -23,43 +24,35 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
-import com.example.famplanapp.darkPurple
-import com.example.famplanapp.globalClasses.Family
-import com.example.famplanapp.lightPurple
-import kotlinx.coroutines.launch
+import com.google.firebase.Timestamp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-
-var tasksList = mutableListOf<Task>()
-
+var displaying = mutableListOf<String>()
 
 @Composable
-fun FilterDropdown(){
-    // expanded state of the Text Field
+fun FilterDropdown(tasksViewModel: TasksViewModel){
+    // expanded/visible dropdown or not
     var expanded by remember { mutableStateOf(false) }
-    // temporary list of options, eventually use list of users
-    val assignees = listOf("My Tasks", "All Tasks", "Unassigned")
-    var selectedAssignee by remember { mutableStateOf("My Tasks") }
+    val filters = listOf("My Tasks", "All Tasks", "Unassigned")
+    var selectedFilter by remember { mutableStateOf(tasksViewModel.currFilter) }
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
-    // Up Icon when expanded and down icon when collapsed
+    // up icon when expanded and down icon when collapsed
     val icon = if (expanded)
         Icons.Filled.KeyboardArrowUp
     else
         Icons.Filled.KeyboardArrowDown
 
     Column() {
-        // Create an Outlined Text Field
-        // with icon and not expanded
         OutlinedTextField(
-            value = selectedAssignee,
-            onValueChange = { selectedAssignee = it },
+            value = selectedFilter,
+            onValueChange = {
+                selectedFilter = it
+                tasksViewModel.currFilter = selectedFilter },
             modifier = Modifier
                 .fillMaxWidth(0.6f)
                 .padding(8.dp)
                 .onGloballyPositioned { coordinates ->
-                    // This value is used to assign to
-                    // the DropDown the same width
                     textFieldSize = coordinates.size.toSize()
                 },
             label = {Text("Filter")},
@@ -74,9 +67,10 @@ fun FilterDropdown(){
             modifier = Modifier
                 .width(with(LocalDensity.current){textFieldSize.width.toDp()})
         ) {
-            assignees.forEach { label ->
+            filters.forEach { label ->
                 DropdownMenuItem(onClick = {
-                    selectedAssignee = label
+                    selectedFilter = label
+                    tasksViewModel.currFilter = selectedFilter
                     expanded = false
                 }) {
                     Text(text = label)
@@ -84,20 +78,32 @@ fun FilterDropdown(){
             }
         }
     }
+    TaskDisplayArea(tasksViewModel)
 }
+
 @Composable
-fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
+fun TaskDisplayArea(tasksViewModel: TasksViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<Task?>(null) }
-    Spacer(modifier = Modifier.height(80.dp))
-    FilterDropdown()
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        items(tasks){task ->
-            ToDoItem(task) { clickedIndex ->
-                selectedTask = task
-                showDialog = true
+
+    tasksViewModel.setCurrDisplayedTasks()
+    displaying.clear()
+    if (tasksViewModel.currDisplayedTasks.value?.isNotEmpty() == true) {
+        LazyColumn(modifier = Modifier.padding(12.dp)) {
+            items(
+                items = tasksViewModel.currDisplayedTasks.value!!,
+                key = { task -> task.id }
+            ) { task ->
+                if (task.id !in displaying) {
+                    ToDoItem(task) {
+                        selectedTask = task
+                        showDialog = true
+                    }
+                    displaying.add(task.id)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
     if (showDialog) {
@@ -108,7 +114,7 @@ fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
                     .background(Color.White)
                 //.padding(16.dp)
             ) {
-                TaskEditor(selectedTask!!, showDialog)
+                TaskEditor(selectedTask!!, tasksViewModel, showDialog)
                 Button(
                     onClick = { showDialog = false },
                     modifier = Modifier
@@ -121,12 +127,21 @@ fun TaskDisplayArea(tasks: List<Task>, deleteTask: (Task) -> Unit) {
         }
     }
 }
+
+fun isBefore(timestamp1: Timestamp, timestamp2: Timestamp): Boolean {
+    if (timestamp1.seconds < timestamp2.seconds) {
+        return true
+    } else if (timestamp1.seconds == timestamp2.seconds) {
+        return timestamp1.nanoseconds < timestamp2.nanoseconds
+    }
+    return false
+}
 @Composable
-fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
+fun ToDoItem(task: Task, onItemClick: (String) -> Unit) {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-    val formattedDateTime = task.dueDate?.format(formatter)
-    val currentDateTime = LocalDateTime.now()
-    val dateColor = if (task.dueDate != null && task.dueDate!!.isBefore(currentDateTime)) {
+    val formattedDateTime = timestampToLocalDateTime(task.dueDate)?.format(formatter)
+    val currentDateTime = Timestamp.now()
+    val dateColor = if (task.dueDate != null && isBefore(task.dueDate!!, currentDateTime)) {
                         Color.Red
                     } else {
                         Color.Black
@@ -147,13 +162,7 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
                 checked = checkedState.value,
                 onCheckedChange = {
                     checkedState.value = it
-                    /*if (!checkedState.value) {
-                        textColor = Color.Gray
-                        textDecor = TextDecoration.LineThrough
-                    } else {
-                        textColor = Color.Black
-                        textDecor = null
-                    } */
+                    task.isCompleted = checkedState.value
                 },
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
@@ -170,16 +179,26 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 16.dp)
                 )
-                Text(
-                    text = "Due $formattedDateTime",
-                    style = TextStyle(fontSize = 16.sp),
-                    color = dateColor,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                if (task.dueDate != null) {
+                    Text(
+                        text = "Due $formattedDateTime",
+                        style = TextStyle(fontSize = 16.sp),
+                        color = dateColor,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                } else {
+                    Text(
+                        text = "No due date",
+                        style = TextStyle(fontSize = 16.sp),
+                        color = Color.Black,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+
             }
         }
         Text(
-            text = "Assignee: ${task.assignee}",
+            text = "Assignee: ${task.assignee?.preferredName}",
             style = TextStyle(fontSize = 16.sp),
             modifier = Modifier.padding(start = 16.dp)
         )
@@ -193,69 +212,36 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
 }
 
 @Composable
-fun TaskItem(task: Task, deleteTask: () -> Unit) {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-    val formattedDateTime = task.dueDate?.format(formatter)
-    val checkedState = remember { mutableStateOf(task.isCompleted) }
-    Card(
-        backgroundColor = Color(lightPurple),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(){
-                Checkbox(
-                    checked = checkedState.value,
-                    onCheckedChange = { checkedState.value = it },
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                Text(
-                    text = task.title,
-                    style = TextStyle(fontSize = 20.sp)
-                )
-            }
-            Text(text = "Due: $formattedDateTime")
-            Text(text = "Assignee: ${task.assignee}")
-            Text(task.notes)
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = deleteTask,
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White,
-                    contentColor = Color(darkPurple))
-                ) {
-                Text("Delete", style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                ))
-            }
-        }
-    }
-}
-
-@Composable
-fun Tasks(innerPadding: PaddingValues) {
-    val tasks = remember { tasksList }
+fun Tasks(tasksViewModel: TasksViewModel, innerPadding: PaddingValues) {
+   // tasksViewModel.fetchTasksFromDb()
     var showDialog by remember { mutableStateOf(false) }
-
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            Spacer(modifier = Modifier.height(50.dp))
+            FilterDropdown(tasksViewModel)
             // Dropdown menu in the top left goes here
-            TaskDisplayArea(tasks, deleteTask = { task -> tasks.remove(task) })
+            TaskDisplayArea(tasksViewModel)
         }
         // Button in the bottom right
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 80.dp, end = 16.dp)
+                .size(56.dp)
+                .background(MaterialTheme.colors.primary, CircleShape)
+                .clickable {
+                    showDialog = true
+                }
         ) {
-            OutlinedButton(
-                onClick = { showDialog = true }
-            ) {
-                Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                Text("+")
-            }
+            Text(
+                text = "+",
+                style = TextStyle(color = MaterialTheme.colors.background, fontSize = 24.sp),
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
         if (showDialog) {
             Dialog(onDismissRequest = { showDialog = false }) {
@@ -265,7 +251,7 @@ fun Tasks(innerPadding: PaddingValues) {
                         .background(Color.White)
                     //.padding(16.dp)
                 ) {
-                    TaskCreator(addTask = { task -> tasksList.add(task) }, showDialog)
+                    TaskCreator(tasksViewModel, showDialog)
                     Button(
                         onClick = { showDialog = false },
                         modifier = Modifier

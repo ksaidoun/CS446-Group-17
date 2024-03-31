@@ -1,13 +1,14 @@
 package com.example.famplanapp.globalClasses
 
-data class User(
-    var userId: String = "",
-    var familyId: String = "",
+import com.example.famplanapp.tasks.Task
+
+class UserCopy(
     var name: String = "",
     var preferredName: String = "",
     var email: String = "",
-    var tasksIds: MutableList<String> = mutableListOf(),
+    var tasks: MutableList<Task> = mutableListOf<Task>(),
     var colour: String = "",
     var role: String = "",
-    var settingId: String = ""
-)
+    settings: AppSettings = AppSettings()) {
+
+}
