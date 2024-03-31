@@ -15,5 +15,5 @@
 |2024/03/18  |   1.5  |        | 1.5    |        |         |  1.5   | Worked on Architecture Style Examples document
 |2024/03/24  |        |        | 6.0    |        |         |  6.0   | Features for final presentation
 |2024/03/25  |   1.5  |        | 1.5    |        |         |  1.5   | Worked on Design Pattern Examples document
-|2024/03/27  |   5.0  |        |        |        |         |        | Worked on features for the final presentation
+|2024/03/27  |   5.0  |        |        |        |         |  8.0   | Worked on features for the final presentation
 |2024/03/29  |   1.0  |        |        |        |         |        | Revised the Design Pattern document before submission
