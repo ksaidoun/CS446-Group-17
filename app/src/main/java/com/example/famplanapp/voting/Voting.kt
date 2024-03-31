@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.famplanapp.darkPurple
-import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.globalClasses.UserCopy
 import com.example.famplanapp.lightPurple
 import com.example.famplanapp.tasks.TasksDatePicker
 import com.example.famplanapp.tasks.TasksTimePicker
@@ -55,21 +55,21 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 var pollList = mutableListOf(
-    Poll(1, User("Julia"),"What should we have for dinner tonight?",
+    Poll(1, UserCopy("Julia"),"What should we have for dinner tonight?",
         listOf(
             PollOption("Chili with rice"),
             PollOption("Chicken stir fry"),
             PollOption("Something else"),
             PollOption("Another option")),
         LocalDateTime.now().plusHours(3)), // Poll ends in 1 day
-    Poll(2,  User("Michael"),"How should we spend Family Day 2024?",
+    Poll(2,  UserCopy("Michael"),"How should we spend Family Day 2024?",
         listOf(
             PollOption("Go skiing"),
             PollOption("Go to Niagara Falls"),
             PollOption("Watch a movie")
         ),
         LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours
-    Poll(2,  User("Dad"),"Poll question?",
+    Poll(2,  UserCopy("Dad"),"Poll question?",
         listOf(
             PollOption("Option A", 2),
             PollOption("Option B", 1),
@@ -306,115 +306,114 @@ fun PollList(polls: List<Poll>) {
 
 @Composable
 fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
-        var title by remember { mutableStateOf("") }
-        var options by remember { mutableStateOf(listOf("", "")) }
-        var deadline by remember { mutableStateOf(LocalDateTime.now().plusDays(1)) }
+    var title by remember { mutableStateOf("") }
+    var options by remember { mutableStateOf(listOf("", "")) }
+    var deadline by remember { mutableStateOf(LocalDateTime.now().plusDays(1)) }
 
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Create a New Poll", style = MaterialTheme.typography.h6)
-            Spacer(modifier = Modifier.height(16.dp))
+    Column(
+        modifier = Modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Create a New Poll", style = MaterialTheme.typography.h6)
+        Spacer(modifier = Modifier.height(16.dp))
 
-            // title
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Poll Title") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.White,
-                )
+        // title
+        OutlinedTextField(
+            value = title,
+            onValueChange = { title = it },
+            label = { Text("Poll Title") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.White,
             )
+        )
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            // options
-            options.forEachIndexed { index, option ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-
-                    ) {
-                    OutlinedTextField(
-                        value = option,
-                        onValueChange = { newOption ->
-                            val mutableOptions = options.toMutableList()
-                            mutableOptions[index] = newOption
-                            options = mutableOptions
-                        },
-                        label = { Text("Option ${index + 1}") },
-                        modifier = Modifier.width(200.dp),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.White,
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    // if more than two options, show 'delete' button
-                    if (options.size > 2) {
-                        IconButton(onClick = {
-                            options = options.toMutableList().apply { removeAt(index) }
-                        }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Remove option")
-                        }
-                    }
-                }
-            }
-
-            // if less than 6 options, show "add option" button
-            if (options.size < 6) {
-                Button(onClick = {
-                    options = options.toMutableList().apply { add("") }
-                }) {
-                    Text("Add Option")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+        // options
+        options.forEachIndexed { index, option ->
             Row(
-            ) {
-                val dueDate = TasksDatePicker("Due Date", null)
-                Spacer(modifier = Modifier.width(8.dp))
-                val dueTime = TasksTimePicker()
-                deadline = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
-            }
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    if (title.isNotBlank() && options.all { it.isNotBlank() }) {
-                        onPollCreated(
-                            Poll(
-                                id = 0,// refactor this when database is implemented
-                                owner = User("CurrentUser"),
-                                subject = title,
-                                options = options.map { PollOption(it) },
-                                deadline = deadline
-                            )
-                        )
-                    }
-
-                },
-                modifier = Modifier
-                    .align(Alignment.End),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.White,
-                    contentColor = Color(darkPurple)
-                )
-            ) {
-                Text(
-                    "Create",
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                ) {
+                OutlinedTextField(
+                    value = option,
+                    onValueChange = { newOption ->
+                        val mutableOptions = options.toMutableList()
+                        mutableOptions[index] = newOption
+                        options = mutableOptions
+                    },
+                    label = { Text("Option ${index + 1}") },
+                    modifier = Modifier.width(200.dp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.White,
                     )
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // if more than two options, show 'delete' button
+                if (options.size > 2) {
+                    IconButton(onClick = {
+                        options = options.toMutableList().apply { removeAt(index) }
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Remove option")
+                    }
+                }
             }
         }
-    }
 
+        // if less than 6 options, show "add option" button
+        if (options.size < 6) {
+            Button(onClick = {
+                options = options.toMutableList().apply { add("") }
+            }) {
+                Text("Add Option")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+        ) {
+            val dueDate = TasksDatePicker("Due Date", null)
+            Spacer(modifier = Modifier.width(8.dp))
+            val dueTime = TasksTimePicker()
+            deadline = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                if (title.isNotBlank() && options.all { it.isNotBlank() }) {
+                    onPollCreated(
+                        Poll(
+                            id = 0,// refactor this when database is implemented
+                            owner = UserCopy("CurrentUser"),
+                            subject = title,
+                            options = options.map { PollOption(it) },
+                            deadline = deadline
+                        )
+                    )
+                }
+
+            },
+            modifier = Modifier
+                .align(Alignment.End),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.White,
+                contentColor = Color(darkPurple)
+            )
+        ) {
+            Text(
+                "Create",
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            )
+        }
+    }
+}
