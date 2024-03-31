@@ -203,11 +203,13 @@ fun SignInScreen() {
                                 auth.createUserWithEmailAndPassword(emailText, passwordText)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
-                                            val user = User(uid, familyCodeText,"", "", emailText, mutableListOf(), "#dc143c", "User", )
+
                                             if (joinFamily) {
+                                                val user = User(uid, familyCodeText,"", "", emailText, mutableListOf(), "#dc143c", "User", )
                                                 currentUser = user
                                                 saveUserAndJoinFamilyToFirebase(context,user,familyCodeText)
                                             } else {
+                                                val user = User(uid, familyId,"", "", emailText, mutableListOf(), "#dc143c", "User", )
                                                 currentUser = user
                                                 createFamilyAndSaveUser(context, user)
                                             }
