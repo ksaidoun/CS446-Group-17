@@ -262,19 +262,38 @@ fun SignInScreen() {
                             auth.signInWithEmailAndPassword(emailText, passwordText)
                                 .addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
-                                        val userId = emailText.replace(".", ",")
-                                        val userRef = database.getReference("users").child(userId)
-                                        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                val user = snapshot.getValue(User::class.java)
+                                        firestore.collection("users").whereEqualTo("email",emailText).get()
+
+
+                                        val reference = firestore.collection("users").whereEqualTo("email",emailText)
+
+                                        reference.get().addOnSuccessListener { querySnapshot ->
+                                            if (!querySnapshot.isEmpty) {
+                                                val document = querySnapshot.documents[0]
+                                                val user = User(
+                                                    document.getString("userid") ?: "",
+                                                    document.getString("familyId") ?: "",
+                                                    document.getString("name") ?: "",
+                                                    document.getString("preferredName") ?: "",
+                                                    document.getString("email") ?: "",
+                                                    mutableListOf(),
+                                                    document.getString("colour") ?: "",
+                                                    document.getString("role") ?: "",
+                                                    document.getString("settingId") ?: ""
+                                                )
+
+                                                val taskIds = document.get("taskIds") as? MutableList<String>
+                                                if (taskIds != null) {
+                                                    user.tasksIds = taskIds
+                                                }
+                                                currentUser = user
+                                                signInClicked = true
+                                            }else{
+                                                val user = User(uid, familyId,"", "", emailText, mutableListOf(), "#dc143c", "User", )
                                                 currentUser = user
                                                 signInClicked = true
                                             }
-
-                                            override fun onCancelled(error: DatabaseError) {
-                                                // Handle database error
-                                            }
-                                        })
+                                        }
                                     } else {
                                         Log.w(TAG, "signInWithEmail:failure", task.exception)
                                         Toast.makeText(
@@ -389,8 +408,10 @@ private fun isValidPassword(password: String): Boolean {
 
 /*
 Next steps for Lauren:
-- modify Navigation.kt so that in the dropdownmenu displays the familyMembers and retrieved from firebase families
-  with the same familyId as the currentUser from the SignInScreen.kt
-- figure out how to add user and families to database 
-- Add 2 hours to timelog for: got start of adding users and families to database working but need to create those tables in the database first
+- add new user based on family code
+- Add 6 hours to timelog for:
+got start of adding users and families to database working but need to create those tables in the database first
+createFamilyAndSaveUser works
+can list the family in dropdown
+fixed existing user sign in
  */
