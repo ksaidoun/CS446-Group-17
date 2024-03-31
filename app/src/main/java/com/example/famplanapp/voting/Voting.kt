@@ -55,21 +55,21 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 var pollList = mutableListOf(
-    Poll(1, User(2,"Julia"),"What should we have for dinner tonight?",
+    Poll(1, User("2","Julia"),"What should we have for dinner tonight?",
         listOf(
             PollOption("Chili with rice"),
             PollOption("Chicken stir fry"),
             PollOption("Something else"),
             PollOption("Another option")),
         LocalDateTime.now().plusHours(3)), // Poll ends in 1 day
-    Poll(2,  User(3,"Michael"),"How should we spend Family Day 2024?",
+    Poll(2,  User("3","Michael"),"How should we spend Family Day 2024?",
         listOf(
             PollOption("Go skiing"),
             PollOption("Go to Niagara Falls"),
             PollOption("Watch a movie")
         ),
         LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours
-    Poll(2,  User(4,"Dad"),"Poll question?",
+    Poll(2,  User("4","Dad"),"Poll question?",
         listOf(
             PollOption("Option A", 2),
             PollOption("Option B", 1),
@@ -391,7 +391,7 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
                         onPollCreated(
                             Poll(
                                 id = 0,// refactor this when database is implemented
-                                owner = User(1,"CurrentUser"),
+                                owner = User("1","CurrentUser"),
                                 subject = title,
                                 options = options.map { PollOption(it) },
                                 deadline = deadline

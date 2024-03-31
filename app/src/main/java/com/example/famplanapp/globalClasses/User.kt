@@ -3,7 +3,7 @@ package com.example.famplanapp.globalClasses
 import com.example.famplanapp.tasks.Task
 
 data class User(
-    var id: Int,
+    var userId: String = "",
     var name: String = "",
     var preferredName: String = "",
     var email: String = "",

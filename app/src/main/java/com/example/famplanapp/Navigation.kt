@@ -56,7 +56,7 @@ import com.example.famplanapp.voting.Voting
 // TEST VALUES FOR USERS & FAMILY
 val tempSettings: AppSettings = AppSettings(false, "Push")
 val tempUser: User = User(
-    1,
+    "1",
     "David Smith",
     "David",
     "testemail@gmail.com",

@@ -221,7 +221,7 @@ fun AssigneeDropdown(prevAssignee: User? = null): User {
     // expanded state of the Text Field
     var expanded by remember { mutableStateOf(false) }
     // if "None" is selected as assignee
-    val noneUser = User(0, "None", "None")
+    val noneUser = User("0", "None", "None")
     var assignees = mutableListOf(noneUser)
     assignees.addAll(family.users)
     // track selected assignee
