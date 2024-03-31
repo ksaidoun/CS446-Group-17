@@ -36,8 +36,43 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import android.os.Bundle
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
 @Composable
 fun Setting(innerPadding: PaddingValues) {
+
+    var name by remember { mutableStateOf("") }
+    var preferrdName by remember { mutableStateOf("") }
+
+    Column {
+        Spacer(modifier = Modifier.height(70.dp))
+        Text(text = "Name:")
+        OutlinedTextField(
+            value = name,
+            onValueChange = { newValue ->
+                name = newValue
+            },
+            modifier = Modifier.padding(16.dp)
+        )
+        Text(text = "Preferred Name:")
+        OutlinedTextField(
+            value = preferrdName,
+            onValueChange = { newValue ->
+                preferrdName = newValue
+            },
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+
+    /*
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -126,4 +161,6 @@ fun Setting(innerPadding: PaddingValues) {
             }
         }
     }
+
+     */
 }

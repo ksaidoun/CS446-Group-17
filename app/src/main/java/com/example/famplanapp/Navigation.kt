@@ -44,9 +44,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.famplanapp.gallery.Gallery
-import com.example.famplanapp.globalClasses.AppSettings
-import com.example.famplanapp.globalClasses.Family
-import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.globalClasses.*
 import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Task
 import com.example.famplanapp.tasks.Tasks
@@ -96,29 +94,42 @@ fun BottomNavBar(currentUser: User){
         NavItem("Gallery", Icons.Default.AccountBox)
     )
     var selectedItem by remember { mutableIntStateOf(0) }
-    /*
-        val viewModel = remember { ExampleViewModel() }
-        val scrollState = rememberLazyListState()
-        val scrollUpState = viewModel.scrollUp.observeAsState()
 
-        viewModel.updateScrollPosition(scrollState.firstVisibleItemIndex)
+    var users by remember { mutableStateOf(mutableListOf<User>()) }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = 56.dp),
-                state = scrollState
-            ) {
-                //content goes here
+    firestore.collection("users").whereEqualTo("familyId",currentUser.familyId).get()
+
+
+    val reference = firestore.collection("users").whereEqualTo("familyId",currentUser.familyId)
+
+    reference.get().addOnSuccessListener { querySnapshot ->
+        if (!querySnapshot.isEmpty) {
+            val documents = querySnapshot.documents
+            documents.forEach() { document ->
+                val user = User(
+                    document.getString("userid") ?: "",
+                    document.getString("familyId") ?: "",
+                    document.getString("name") ?: "",
+                    document.getString("preferredName") ?: "",
+                    document.getString("email") ?: "",
+                    mutableListOf(),
+                    document.getString("colour") ?: "",
+                    document.getString("role") ?: "",
+                    document.getString("settingId") ?: ""
+                )
+
+                val taskIds = document.get("taskIds") as? MutableList<String>
+                if (taskIds != null) {
+                    user.tasksIds = taskIds
+                }
+                users.add(user)
             }
-
-            ScrollableAppBar(
-                title = "ScrollableAppBarExample",
-                modifier = Modifier.align(Alignment.CenterStart),
-                scrollUpState = scrollUpState
-            )
         }
-    */
+    }
+
+    val tempSettings: AppSettings = AppSettings(false, "Push")
+    var completeFamily = FamilyOfUsers(currentUser.familyId, tempSettings, users)
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -160,6 +171,7 @@ fun BottomNavBar(currentUser: User){
                         }
                     }
                 },
+                /*
                 actions = {
                     // Show dropdown menu when R.drawable.person icon is clicked
                     IconButton(onClick = { menuExpanded = true }) {
@@ -170,7 +182,7 @@ fun BottomNavBar(currentUser: User){
                         )
                     }
                 },
-                /*
+                */
                 actions = {
                     if (R.drawable.person != null) {
                         IconButton(onClick = {
@@ -190,8 +202,6 @@ fun BottomNavBar(currentUser: User){
                         }
                     }
                 },
-
-                 */
                 modifier = Modifier.fillMaxWidth()
                         .height(50.dp)
             )
@@ -244,6 +254,7 @@ fun BottomNavBar(currentUser: User){
                 // Screen content for Setting
             }
         }
+        /*
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
@@ -271,52 +282,8 @@ fun BottomNavBar(currentUser: User){
                 }
             }
         }
+         */
     }
 }
 
 data class NavItem(val title: String, val icon: ImageVector)
-
-@Composable
-fun ScrollableAppBar(
-    title: String,
-    modifier: Modifier = Modifier,
-    navigationIcon: @Composable (() -> Unit)? = null,
-    background: androidx.compose.ui.graphics.Color = MaterialTheme.colors.primary,
-    scrollUpState: State<Boolean?>,
-) {
-    val position by animateFloatAsState(if (scrollUpState.value == true) -150f else 0f)
-
-    Surface(modifier = Modifier.graphicsLayer { translationY = (position) }, elevation = 8.dp) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(color = background),
-        )
-        Row(modifier = modifier.padding(start = 12.dp)) {
-            if (navigationIcon != null) {
-                navigationIcon()
-            }
-            Image(
-                painter = painterResource(id = R.drawable.logowname),
-                contentDescription = "Logo",
-                modifier = Modifier.size(120.dp)
-            )
-        }
-    }
-}
-
-class ExampleViewModel : ViewModel() {
-    private var lastScrollIndex = 0
-
-    private val _scrollUp = MutableLiveData(false)
-    val scrollUp: LiveData<Boolean>
-        get() = _scrollUp
-
-    fun updateScrollPosition(newScrollIndex: Int) {
-        if (newScrollIndex == lastScrollIndex) return
-
-        _scrollUp.value = newScrollIndex > lastScrollIndex
-        lastScrollIndex = newScrollIndex
-    }
-}

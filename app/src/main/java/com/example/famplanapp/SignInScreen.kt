@@ -373,10 +373,14 @@ private fun isValidPassword(password: String): Boolean {
 
 /*
 Next steps for Lauren:
-- Add 7 hours to timelog for:
-got start of adding users and families to database working but need to create those tables in the database first
-createFamilyAndSaveUser works
-can list the family in dropdown
-fixed existing user sign in
-user can add based on family code now
+- settings
+    - set name and preferred name
+    - others???
+
+Plan for settings
+- on the first page have "Hello username"
+- edit name button
+- view family button
+- button for shared budget
+- button for notifications
  */
