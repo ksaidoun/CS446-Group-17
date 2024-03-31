@@ -24,10 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
+import com.google.firebase.Timestamp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-var displaying = mutableListOf<Int>()
+var displaying = mutableListOf<String>()
 
 @Composable
 fun FilterDropdown(tasksViewModel: TasksViewModel){
@@ -87,10 +88,10 @@ fun TaskDisplayArea(tasksViewModel: TasksViewModel) {
 
     tasksViewModel.setCurrDisplayedTasks()
     displaying.clear()
-    if (tasksViewModel.currDisplayedTasks.isNotEmpty()) {
+    if (tasksViewModel.currDisplayedTasks.value?.isNotEmpty() == true) {
         LazyColumn(modifier = Modifier.padding(12.dp)) {
             items(
-                items = tasksViewModel.currDisplayedTasks,
+                items = tasksViewModel.currDisplayedTasks.value!!,
                 key = { task -> task.id }
             ) { task ->
                 if (task.id !in displaying) {
@@ -126,12 +127,21 @@ fun TaskDisplayArea(tasksViewModel: TasksViewModel) {
         }
     }
 }
+
+fun isBefore(timestamp1: Timestamp, timestamp2: Timestamp): Boolean {
+    if (timestamp1.seconds < timestamp2.seconds) {
+        return true
+    } else if (timestamp1.seconds == timestamp2.seconds) {
+        return timestamp1.nanoseconds < timestamp2.nanoseconds
+    }
+    return false
+}
 @Composable
-fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
+fun ToDoItem(task: Task, onItemClick: (String) -> Unit) {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-    val formattedDateTime = task.dueDate?.format(formatter)
-    val currentDateTime = LocalDateTime.now()
-    val dateColor = if (task.dueDate != null && task.dueDate!!.isBefore(currentDateTime)) {
+    val formattedDateTime = timestampToLocalDateTime(task.dueDate)?.format(formatter)
+    val currentDateTime = Timestamp.now()
+    val dateColor = if (task.dueDate != null && isBefore(task.dueDate!!, currentDateTime)) {
                         Color.Red
                     } else {
                         Color.Black
@@ -203,6 +213,7 @@ fun ToDoItem(task: Task, onItemClick: (Int) -> Unit) {
 
 @Composable
 fun Tasks(tasksViewModel: TasksViewModel, innerPadding: PaddingValues) {
+   // tasksViewModel.fetchTasksFromDb()
     var showDialog by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxSize()

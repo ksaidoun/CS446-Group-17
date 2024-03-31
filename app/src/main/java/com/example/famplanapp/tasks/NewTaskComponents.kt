@@ -52,8 +52,12 @@ import com.example.famplanapp.globalClasses.User
 import java.text.SimpleDateFormat
 import java.time.DateTimeException
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Calendar
 import java.util.Locale
+import com.google.firebase.Timestamp
+import java.time.Instant
+import java.time.ZoneId
 
 
 @Composable
@@ -92,6 +96,20 @@ fun LocalDateTime.toCalendar(): Calendar {
     calendar.set(Calendar.MILLISECOND, this.nano / 1000000)
     return calendar
 }
+
+fun localDateTimeToTimestamp(localDateTime: LocalDateTime?): Timestamp? {
+    if (localDateTime == null) return null
+    val epochSeconds = localDateTime?.toEpochSecond(ZoneOffset.UTC)
+    val nanoSeconds = localDateTime?.nano
+    return Timestamp(epochSeconds!!, nanoSeconds!!)
+}
+
+fun timestampToLocalDateTime(timestamp: Timestamp?): LocalDateTime? {
+    if (timestamp == null) return null
+    val instant = Instant.ofEpochSecond(timestamp.seconds, timestamp.nanoseconds.toLong())
+    return LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+}
+
 @Composable
 fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDateTime? {
     val context = LocalContext.current
@@ -199,16 +217,17 @@ fun TasksTimePicker(defaultDate: LocalDateTime? = null): Pair<Int, Int> {
 }
 
 @Composable
-fun AssigneeDropdown(prevAssignee: User?): User {
+fun AssigneeDropdown(prevAssignee: User? = null): User {
     // expanded state of the Text Field
     var expanded by remember { mutableStateOf(false) }
     // if "None" is selected as assignee
-    val noneUser = User("None", "None")
+    val noneUser = User(0, "None", "None")
     var assignees = mutableListOf(noneUser)
     assignees.addAll(family.users)
     // track selected assignee
-    var selectedAssignee by remember { mutableStateOf(assignees.first()) }
-    if (prevAssignee != null) selectedAssignee = prevAssignee
+    var selectedAssignee by remember { mutableStateOf(prevAssignee) }
+    if (prevAssignee == null) selectedAssignee = assignees.first()
+
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
     // up icon when expanded and down icon when collapsed
     val icon = if (expanded)
@@ -220,7 +239,7 @@ fun AssigneeDropdown(prevAssignee: User?): User {
         // Create an Outlined Text Field
         // with icon and not expanded
         OutlinedTextField(
-            value = selectedAssignee.preferredName,
+            value = selectedAssignee!!.preferredName,
             onValueChange = {  },
             modifier = Modifier
                 .fillMaxWidth()
@@ -249,16 +268,16 @@ fun AssigneeDropdown(prevAssignee: User?): User {
             }
         }
     }
-    return selectedAssignee
+    return selectedAssignee!!
 }
 
 
 @Composable
 fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
-    val id = tasksViewModel.getTaskIdCount()
+    val id = tasksViewModel.getTaskIdCount().toString()
     var title by remember { mutableStateOf("") }
-    var dueDate: LocalDateTime? = null
-    var remindTime: LocalDateTime? = null
+    var dueDate: Timestamp? = null
+    var remindTime: Timestamp? = null
     var assignee: User? by remember { mutableStateOf(null) }
     var notes by remember { mutableStateOf("") }
     var isCompleted = false
@@ -281,20 +300,21 @@ fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            dueDate = TasksDatePicker("Due Date", null)
+            var due = TasksDatePicker("Due Date", null)
             Spacer(modifier = Modifier.width(16.dp))
             dueTime = TasksTimePicker(null)
-            dueDate = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
+            dueDate = localDateTimeToTimestamp(due?.withHour(dueTime.first)?.withMinute(dueTime.second))
         }
         Spacer(modifier = Modifier.height(16.dp))
         // Remind time fields
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            remindTime = TasksDatePicker("Reminder", null)
+            var remind = TasksDatePicker("Reminder", null)
             Spacer(modifier = Modifier.width(16.dp))
             reminderTime = TasksTimePicker(null)
-            remindTime = remindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
+            remindTime = localDateTimeToTimestamp(remind?.withHour(reminderTime.first)?.withMinute(reminderTime.second))
+
         }
         Spacer(modifier = Modifier.height(16.dp))
         assignee = AssigneeDropdown(null)
@@ -321,13 +341,12 @@ fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
                 tasksViewModel.addTask(task)
                 showToast(context, "Task created successfully")
                 title = ""
-                dueDate = LocalDateTime.now()
-                remindTime = LocalDateTime.now()
+                dueDate = null
+                remindTime = null
                 assignee = null
                 notes = ""
                 isCompleted = false
             },
-
             modifier = Modifier
                 .align(Alignment.End),
             colors = ButtonDefaults.buttonColors(
@@ -359,6 +378,8 @@ fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean) 
     var dueTime: Pair<Int, Int>
     var reminderTime: Pair<Int, Int>
     val context = LocalContext.current
+    val convertedDueDate = timestampToLocalDateTime(task.dueDate)
+    val convertedRemindTime = timestampToLocalDateTime(task.remindTime)
     Column(modifier = Modifier.padding(16.dp)) {
         IconButton(
             onClick = {
@@ -381,23 +402,23 @@ fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean) 
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            newDueDate = TasksDatePicker("Due Date", task.dueDate)
+            var newDue = TasksDatePicker("Due Date", convertedDueDate)
             Spacer(modifier = Modifier.width(16.dp))
-            dueTime = TasksTimePicker(task.dueDate)
-            newDueDate = newDueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
+            dueTime = TasksTimePicker(timestampToLocalDateTime(task.dueDate))
+            newDueDate = localDateTimeToTimestamp(newDue?.withHour(dueTime.first)?.withMinute(dueTime.second))
         }
         Spacer(modifier = Modifier.height(16.dp))
         // Remind time fields
         Row (
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ){
-            newRemindTime = TasksDatePicker("Reminder", task.remindTime)
+            var newRemind = TasksDatePicker("Reminder", convertedRemindTime)
             Spacer(modifier = Modifier.width(16.dp))
-            reminderTime = TasksTimePicker(task.remindTime)
-            newRemindTime = newRemindTime?.withHour(reminderTime.first)?.withMinute(reminderTime.second)
+            reminderTime = TasksTimePicker(timestampToLocalDateTime(task.remindTime))
+            newRemindTime = localDateTimeToTimestamp(newRemind?.withHour(reminderTime.first)?.withMinute(reminderTime.second))
         }
         Spacer(modifier = Modifier.height(16.dp))
-        AssigneeDropdown(task.assignee)
+        newAssignee = AssigneeDropdown(task.assignee)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = newNotes,
@@ -408,7 +429,7 @@ fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean) 
         Spacer(modifier = Modifier.padding(top = 10.dp))
         Button(
             onClick = {
-                tasksViewModel.editTask(task, newTitle, newDueDate!!, newRemindTime!!, newAssignee!!, newNotes, newIsCompleted)
+                tasksViewModel.editTask(task, newTitle, newDueDate, newRemindTime, newAssignee!!, newNotes, newIsCompleted)
                 showToast(context, "Task updated successfully")
             },
 

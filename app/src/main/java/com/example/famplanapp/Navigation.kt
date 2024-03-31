@@ -56,13 +56,14 @@ import com.example.famplanapp.voting.Voting
 // TEST VALUES FOR USERS & FAMILY
 val tempSettings: AppSettings = AppSettings(false, "Push")
 val tempUser: User = User(
+    1,
     "David Smith",
     "David",
     "testemail@gmail.com",
-    mutableListOf<Task>(),
+    mutableListOf<String>(),
     "#dc143c",
-    "Admin",
-    tempSettings)
+    "Admin"
+)
 var tempUsers: List<User> = listOf(tempUser)
 var family: Family = Family(1, tempSettings, tempUsers)
 var currUser = tempUser
@@ -79,7 +80,7 @@ fun BottomNavBar(){
     ))
 
     val navController = rememberNavController()
-    val taskViewModel: TasksViewModel = viewModel()
+    val tasksViewModel: TasksViewModel = viewModel()
     var menuExpanded by remember { mutableStateOf(false) }
 
     val navItems = listOf(
@@ -224,7 +225,7 @@ fun BottomNavBar(){
             }
             composable("Tasks") {
                 // Screen content for Tasks
-                Tasks(taskViewModel, innerPadding)
+                Tasks(tasksViewModel, innerPadding)
             }
             composable("Voting") {
                 Voting(innerPadding)

@@ -2,13 +2,14 @@ package com.example.famplanapp.globalClasses
 
 import com.example.famplanapp.tasks.Task
 
-class User(
+data class User(
+    var id: Int,
     var name: String = "",
     var preferredName: String = "",
     var email: String = "",
-    var tasks: MutableList<Task> = mutableListOf<Task>(),
+    var tasksId: MutableList<String> = mutableListOf(),
     var colour: String = "",
     var role: String = "",
-    settings: AppSettings = AppSettings()) {
+    var settingId: String = "") {
 
 }
