@@ -1,4 +1,6 @@
 package com.example.famplanapp.globalClasses
 
-class Family(var id: String, var settings: AppSettings, var users: List<User>) {
-}
+data class Family(
+    var familyId: String,
+    var settingsId: String,
+    var userIds: MutableList<String>)

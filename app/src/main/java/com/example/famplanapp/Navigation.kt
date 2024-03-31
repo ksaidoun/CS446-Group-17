@@ -2,6 +2,7 @@ package com.example.famplanapp
 
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,8 +53,14 @@ import com.example.famplanapp.voting.PollCreationScreen
 import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.tasks.TasksViewModel
 import com.example.famplanapp.voting.Voting
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.database.ktx.database
 
 // TEST VALUES FOR USERS & FAMILY
+/*
 val tempSettings: AppSettings = AppSettings(false, "Push")
 val tempUser: User = User(
     "",
@@ -68,11 +75,12 @@ val tempUser: User = User(
 var tempUsers: List<User> = listOf(tempUser)
 var currUser = tempUser
 var family: Family = Family("1", tempSettings, tempUsers)
+ */
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun BottomNavBar(){
+fun BottomNavBar(currentUser: User){
     val photos = mutableListOf<Int>()
     photos.addAll(listOf(
         R.drawable.test1,
@@ -241,20 +249,51 @@ fun BottomNavBar(){
                 // Screen content for Setting
             }
         }
-        /*
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
         ) {
+            // Retrieve family members from Firebase
+            val familyMembers = remember { mutableStateListOf<User>() }
+
+            val familyRef = Firebase.database.getReference("families")
+            familyRef.child(currentUser.familyId).child("userIds")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        snapshot.children.forEach { memberSnapshot ->
+                            val memberId = memberSnapshot.getValue(String::class.java)
+                            memberId?.let { memberId ->
+                                val userRef = Firebase.database.getReference("users")
+                                userRef.child(memberId)
+                                    .addListenerForSingleValueEvent(object : ValueEventListener {
+                                        override fun onDataChange(userSnapshot: DataSnapshot) {
+                                            val user = userSnapshot.getValue(User::class.java)
+                                            user?.let { familyMembers.add(it) }
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                            Log.e("Navigation", "Error fetching user: $error")
+                                        }
+                                    })
+                            }
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e("Navigation", "Error fetching family members: $error")
+                    }
+                })
+
+            // Populate dropdown menu with family members
             familyMembers.forEach { member ->
                 DropdownMenuItem(onClick = {
                     menuExpanded = false
+                    // Do something when a family member is selected
                 }) {
                     Text(member.name)
                 }
             }
         }
-         */
     }
 }
 
