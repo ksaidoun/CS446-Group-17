@@ -1,4 +1,5 @@
 package com.example.famplanapp.schedule
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,19 +17,49 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.lightPurple
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
 import java.util.Date
 
+//data class Event(val id: Int, val title: String, val invitedUsers: List<User>, val cost: Int)
+
+var eventList = mutableListOf<Event>()
+var currId = 0
+var sharedBudget by mutableStateOf(0)
+var users = mutableListOf<User>(User("Bob"), User("Carol"))
+
+
+fun makeEvent(eventName: String, attendees: String, cost: String){
+    val listNames = attendees.split(", ")
+    val listUsers = mutableListOf<User>()
+    var index = 0;
+    for (name in listNames) {
+        index = users.indexOfFirst{it -> it.name == name}
+        if(index >= 0) {
+            listUsers.add(users[index])
+        }
+    }
+    val myEvent = Event(id=currId, title=eventName, invitedUsers=listUsers, cost=cost.toInt());
+    ++currId
+    eventList.add(myEvent)
+    sharedBudget -= cost.toInt()
+}
 
 @Composable
-fun CalendarUI(currentWeekSunday: LocalDate) {
+fun CalendarUI(
+    currentWeekSunday: LocalDate,
+    selectedCells: Set<Pair<Int, Int>>,
+    onCellClick: (Int, Int) -> Unit
+) {
     var isDialogOpen by remember { mutableStateOf(false) }
     var eventName by remember { mutableStateOf(TextFieldValue()) }
     var attendees by remember { mutableStateOf(TextFieldValue()) }
+    var cost by remember { mutableStateOf(TextFieldValue()) }
     var selectedDateTime by remember { mutableStateOf(Date()) }
+
     Column {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(
@@ -53,7 +84,6 @@ fun CalendarUI(currentWeekSunday: LocalDate) {
                 ) {
                     Text(
                         text = getDayAbbreviation(dayIndex) + "\n" + (fixRange((currentWeekSunday.dayOfMonth + dayIndex), daysInMonth(currentWeekSunday.monthValue))).toString(),
-                        //fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -73,16 +103,18 @@ fun CalendarUI(currentWeekSunday: LocalDate) {
                         Text(if(rowIndex == 0) "12AM" else (rowIndex % 12).toString() + if(rowIndex < 12) "AM" else "PM")
                     }
                     repeat(7) { columnIndex ->
+                        val cellColor = if (selectedCells.contains(rowIndex to columnIndex)) Color.Green else Color.White
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                            .aspectRatio(1f)
-                            .background(Color.White)
-                            .border(0.5.dp, Color.Black)
-                                .clickable { isDialogOpen = true }
-                        ) {
-                        }
-
+                                .aspectRatio(1f)
+                                .background(cellColor)
+                                .border(0.5.dp, Color.Black)
+                                .clickable {
+                                    onCellClick(rowIndex, columnIndex)
+                                    isDialogOpen = true
+                                }
+                        ) {}
                     }
                 }
             }
@@ -92,7 +124,10 @@ fun CalendarUI(currentWeekSunday: LocalDate) {
                 onDismissRequest = { isDialogOpen = false },
                 title = { Text("Event Details") },
                 confirmButton = {
-                    Button(onClick = { isDialogOpen = false }) {
+                    Button(onClick = {
+                        makeEvent(eventName.text, attendees.text, cost.text)
+                        isDialogOpen = false
+                    }) {
                         Text("Save")
                     }
                 },
@@ -121,7 +156,23 @@ fun CalendarUI(currentWeekSunday: LocalDate) {
                             label = { Text("Attendees") }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        // Implement date/time selector
+                        TextField(
+                            value = cost.text,
+                            onValueChange = { cost = TextFieldValue(it) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.body1,
+                            label = { Text("Cost") }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        /*TextField(
+                            value = sharedBudget.toString(),
+                            onValueChange = { /* Disable editing */ },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.body1,
+                            label = { Text("Shared Budget") }
+                        )*/
                     }
                 },
                 properties = DialogProperties(dismissOnClickOutside = false)
@@ -136,6 +187,7 @@ fun fixRange(num:Int, remainder:Int): Int{
     }
     return num % remainder
 }
+
 fun getDayAbbreviation(dayIndex: Int): String {
     return when (dayIndex) {
         0 -> "Sun"
@@ -168,7 +220,8 @@ fun daysInMonth(monthIndex: Int): Int {
 @Composable
 fun Schedule(innerPadding: PaddingValues) {
     var currentWeekSunday by remember { mutableStateOf(LocalDate.now().with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SUNDAY))) }
-    println(currentWeekSunday.toString())
+    var selectedCells by remember { mutableStateOf(emptySet<Pair<Int, Int>>()) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -186,7 +239,7 @@ fun Schedule(innerPadding: PaddingValues) {
             modifier = Modifier.fillMaxWidth()
         ){
             Text("Previous Week", style = TextStyle(
-                    fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             ))
         }
@@ -199,7 +252,22 @@ fun Schedule(innerPadding: PaddingValues) {
                 fontSize = 18.sp
             ))
         }
-        CalendarUI(currentWeekSunday)
+        TextField(
+            value = sharedBudget.toString(),
+            onValueChange = {
+                sharedBudget = it.toIntOrNull() ?: 0
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.body1,
+            label = { Text("Shared Budget") }
+        )
+        CalendarUI(
+            currentWeekSunday = currentWeekSunday,
+            selectedCells = selectedCells,
+            onCellClick = { rowIndex, columnIndex ->
+                selectedCells = setOf(rowIndex to columnIndex)
+            }
+        )
     }
-
 }
