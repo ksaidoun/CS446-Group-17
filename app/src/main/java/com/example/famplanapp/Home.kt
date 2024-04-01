@@ -27,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.famplanapp.schedule.eventList
 import com.example.famplanapp.tasks.TasksViewModel
 import com.example.famplanapp.voting.pollList
@@ -48,7 +50,7 @@ val eventsSentences = listOf(
     "Sunday brunch",
 )
 @Composable
-fun Home(innerPadding: PaddingValues, viewModel: TasksViewModel) {
+fun Home(innerPadding: PaddingValues, viewModel: TasksViewModel, navController: NavController) {
     val currentTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val tasksState = viewModel.tasksList.observeAsState(initial = emptyList())
     val taskTitles = tasksState.value.map { it.title }
@@ -63,14 +65,14 @@ fun Home(innerPadding: PaddingValues, viewModel: TasksViewModel) {
         else -> "Good Night" // Otherwise, it's night
 
     }
-    val name = "Brandon"
+    val name = currUser.preferredName
 
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(
             text = "$greeting $name!",
             style = MaterialTheme.typography.h5,
-            modifier = Modifier.padding(16.dp, 10.dp, 0.dp, 10.dp)
+            modifier = Modifier.padding(16.dp, 54.dp, 0.dp, 4.dp)
         )
 
         //Section(title = "Upcoming Tasks:") {
@@ -89,7 +91,9 @@ fun Home(innerPadding: PaddingValues, viewModel: TasksViewModel) {
                         modifier = Modifier.padding(10.dp),
                         fontSize = 16.sp)
                     LazyButtons(
-                        sentences = taskTitles
+                        sentences = taskTitles,
+                        navController = navController,
+                        "Tasks"
                     )
                 }
             }
@@ -109,7 +113,7 @@ fun Home(innerPadding: PaddingValues, viewModel: TasksViewModel) {
                     Text("Upcoming Polls",
                         modifier = Modifier.padding(10.dp),
                         fontSize = 16.sp)
-                    LazyButtons(sentences = pollTitles )
+                    LazyButtons(sentences = pollTitles,navController = navController,"Voting" )
                 }
             }
         //}
@@ -128,7 +132,7 @@ fun Home(innerPadding: PaddingValues, viewModel: TasksViewModel) {
                     Text("Upcoming Events",
                         modifier = Modifier.padding(10.dp),
                         fontSize = 16.sp)
-                    LazyButtons(sentences = eventTitles)
+                    LazyButtons(sentences = eventTitles, navController = navController, "Schedule")
                 }
             }
         //}
@@ -149,13 +153,21 @@ fun Section(title: String, content: @Composable () -> Unit) {
 
 
 @Composable
-fun LazyButtons(sentences: List<String>) {
+fun LazyButtons(sentences: List<String>, navController: NavController,routeName: String) {
     LazyColumn(modifier = Modifier
         .heightIn(0.dp, 130.dp)
         .padding(start = 10.dp)) {
         items(sentences.size) { index ->
             Button(
-                onClick = {},
+                onClick = {
+                    navController.navigate(routeName){
+                        popUpTo(navController.graph.startDestinationRoute!!) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
                 modifier = Modifier
                     .width(320.dp) // Set the width of the button
                     .height(50.dp),
