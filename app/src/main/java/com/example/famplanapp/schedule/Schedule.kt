@@ -224,7 +224,8 @@ fun Schedule(innerPadding: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(top=50.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
