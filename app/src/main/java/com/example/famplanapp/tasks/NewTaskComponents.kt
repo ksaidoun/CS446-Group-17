@@ -132,10 +132,10 @@ fun TasksDatePicker(defaultText: String, defaultDate: LocalDateTime?): LocalDate
 
     if (defaultDate != null) {
         year = defaultDate.year
-        month = defaultDate.monthValue - 1
+        month = defaultDate.monthValue
         day = defaultDate.dayOfMonth
         newYear = defaultDate.year
-        newMonth = defaultDate.monthValue - 1
+        newMonth = defaultDate.monthValue
         newDay = defaultDate.dayOfMonth
         selectedDate = defaultDate.toCalendar()
         selectedDateText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedDate.time)
@@ -239,12 +239,10 @@ fun AssigneeDropdown(prevAssignee: User? = null): User {
                 assignees.add(user)
             }
         }
-
     }
     // track selected assignee
     var selectedAssignee by remember { mutableStateOf(prevAssignee) }
     if (prevAssignee == null) selectedAssignee = assignees.first()
-
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
     // up icon when expanded and down icon when collapsed
     val icon = if (expanded)
@@ -253,8 +251,6 @@ fun AssigneeDropdown(prevAssignee: User? = null): User {
         Icons.Filled.KeyboardArrowDown
 
     Column() {
-        // Create an Outlined Text Field
-        // with icon and not expanded
         OutlinedTextField(
             value = selectedAssignee!!.preferredName,
             onValueChange = {  },
