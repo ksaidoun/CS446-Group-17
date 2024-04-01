@@ -21,3 +21,4 @@
 |2024/03/30  |   2.0  |        |        |        |         |        | Worked on features for the final presentation
 |2024/03/31  |   2.0  |   4.0  |        |        |  4.5    |   5.0  | Worked on more features for the final presentation
 |2024/04/01  |        |   7.0  |        |        |         |        | Worked on more features for the final presentation
+|2024/04/01  |   2.0  |        |        |        |         |        | Meeting to discuss presentation and architecture document
