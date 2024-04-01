@@ -119,6 +119,7 @@ fun Voting(innerPadding: PaddingValues) {
                 .background(MaterialTheme.colors.primary, CircleShape)
                 .clickable { showPollCreationDialog = true }
                 .align(Alignment.BottomEnd)
+
         ) {
             Text(
                 text = "+",
@@ -295,7 +296,7 @@ fun PollCard(poll: Poll) {
 fun PollList(polls: List<Poll>) {
     val backgroundColor = Color(darkPurple)
     Surface(color = backgroundColor, modifier = Modifier.fillMaxSize()) {
-        LazyColumn(modifier = Modifier.padding(bottom = 70.dp)) {
+        LazyColumn(modifier = Modifier.padding(bottom = 70.dp, top=50.dp)) {
             items(polls) { poll ->
                 PollCard(poll = poll)
             }
