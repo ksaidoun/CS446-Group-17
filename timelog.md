@@ -19,5 +19,5 @@
 |2024/03/27  |   5.0  |  2.0   | 10.0   |        |         |  8.0   | Worked on features for the final presentation
 |2024/03/29  |   1.0  |        |        |        |         |        | Revised the Design Pattern document before submission
 |2024/03/30  |   2.0  |        |        |        |         |        | Worked on features for the final presentation
-|2024/03/31  |   2.0  |   4.0  |        |        |  4.5    |        | Worked on more features for the final presentation
+|2024/03/31  |   2.0  |   4.0  |        |        |  4.5    |   5.0  | Worked on more features for the final presentation
 |2024/04/01  |        |   7.0  |        |        |         |        | Worked on more features for the final presentation
