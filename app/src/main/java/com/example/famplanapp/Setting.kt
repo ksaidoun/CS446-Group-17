@@ -130,6 +130,7 @@ fun Setting(currentUser: User) {
             )
         }
 
+
         Spacer(modifier = Modifier.height(10.dp))
 
         // Shared Budget Text Field and Slider
@@ -139,10 +140,26 @@ fun Setting(currentUser: User) {
         ) {
             Text("Shared Budget for Family:")
             Spacer(modifier = Modifier.width(16.dp))
-            Switch(
-                checked = sharedBudgetEnabled,
-                onCheckedChange = { sharedBudgetEnabled = it },
-            )
+            if(currentUser.role == "User") {
+                Switch(
+                    checked = sharedBudgetEnabled,
+                    onCheckedChange = { checked ->
+                        if (currentUser.role == "Admin"){
+                            sharedBudgetEnabled = checked
+                        }else{
+                            Toast.makeText(context, "Only Admin can edit", Toast.LENGTH_LONG).show()
+                        }
+                                      },
+                    enabled = false,
+                )
+
+            }else{
+                Switch(
+                    checked = sharedBudgetEnabled,
+                    onCheckedChange = { sharedBudgetEnabled = it },
+                    enabled = true,
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -154,10 +171,20 @@ fun Setting(currentUser: User) {
         ) {
             Text("Notification")
             Spacer(modifier = Modifier.width(16.dp))
-            Switch(
-                checked = notificationEnabled,
-                onCheckedChange = { notificationEnabled = it }
-            )
+            if(currentUser.role == "User"){
+                Switch(
+                    checked = notificationEnabled,
+                    onCheckedChange = { notificationEnabled = it },
+                    enabled = false,
+                )
+            }else{
+                Switch(
+                    checked = notificationEnabled,
+                    onCheckedChange = { notificationEnabled = it },
+                    enabled = true
+                )
+            }
+
         }
 
         Spacer(modifier = Modifier.height(10.dp))

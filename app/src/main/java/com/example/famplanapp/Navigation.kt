@@ -56,7 +56,7 @@ import com.example.famplanapp.voting.Voting
 
 // TEST VALUES FOR USERS & FAMILY
 
-val tempSettings: AppSettings = AppSettings(false, "Push")
+val tempSettings: AppSettings = AppSettings("0",false, "Push")
 val tempUser: User = User(
     "1",
     "",
@@ -127,7 +127,7 @@ fun BottomNavBar(currentUser: User){
         }
     }
 
-    val tempSettings: AppSettings = AppSettings(false, "Push")
+    val tempSettings: AppSettings = AppSettings(currentUser.settingId,false, "Push")
     var completeFamily = FamilyOfUsers(currentUser.familyId, tempSettings, users)
 
     Scaffold(

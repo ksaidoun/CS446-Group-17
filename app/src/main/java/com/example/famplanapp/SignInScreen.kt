@@ -108,6 +108,7 @@ fun SignInScreen() {
 
     var familyId = ""
     var uid = ""
+    var settingsId = ""
 
     val query = firestore.collection("families")
     val countQuery = query.count()
@@ -115,8 +116,9 @@ fun SignInScreen() {
         if (task.isSuccessful) {
             // Count fetched successfully
             val snapshot = task.result
-            var c = snapshot.count + 1
+            val c = snapshot.count + 1
             familyId = "family" + c.toString()
+            settingsId = "setting" + c.toString()
             Log.d(TAG, "Count: ${snapshot.count}")
         } else {
             Log.d(TAG, "Count failed: ", task.getException())
@@ -205,11 +207,12 @@ fun SignInScreen() {
                                         if (task.isSuccessful) {
 
                                             if (joinFamily) {
-                                                val user = User(uid, familyCodeText,"", "", emailText, mutableListOf(), "#dc143c", "User", )
+                                                settingsId = "setting" + familyCodeText.replace(Regex("[^0-9]"), "")
+                                                val user = User(uid, familyCodeText,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "User",settingsId )
                                                 currentUser = user
                                                 saveUserAndJoinFamilyToFirebase(context,user,familyCodeText)
                                             } else {
-                                                val user = User(uid, familyId,"", "", emailText, mutableListOf(), "#dc143c", "User", )
+                                                val user = User(uid, familyId,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "Admin",settingsId )
                                                 currentUser = user
                                                 createFamilyAndSaveUser(context, user)
                                             }
@@ -274,15 +277,15 @@ fun SignInScreen() {
                                             if (!querySnapshot.isEmpty) {
                                                 val document = querySnapshot.documents[0]
                                                 val user = User(
-                                                    document.getString("userId") ?: "",
-                                                    document.getString("familyId") ?: "",
-                                                    document.getString("name") ?: "",
-                                                    document.getString("preferredName") ?: "",
-                                                    document.getString("email") ?: "",
+                                                    document.getString("userId") ?: "error",
+                                                    document.getString("familyId") ?: "error",
+                                                    document.getString("name") ?: "error",
+                                                    document.getString("preferredName") ?: "error",
+                                                    document.getString("email") ?: "error",
                                                     mutableListOf(),
-                                                    document.getString("colour") ?: "",
-                                                    document.getString("role") ?: "",
-                                                    document.getString("settingId") ?: ""
+                                                    document.getString("colour") ?: "error",
+                                                    document.getString("role") ?: "error",
+                                                    document.getString("settingId") ?: "error"
                                                 )
 
                                                 val taskIds = document.get("taskIds") as? MutableList<String>
@@ -292,7 +295,7 @@ fun SignInScreen() {
                                                 currentUser = user
                                                 signInClicked = true
                                             }else{
-                                                val user = User(uid, familyId,"", "", emailText, mutableListOf(), "#dc143c", "User", )
+                                                val user = User(uid, familyId,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "User", settingsId)
                                                 currentUser = user
                                                 signInClicked = true
                                             }
@@ -325,7 +328,9 @@ fun SignInScreen() {
 private fun createFamilyAndSaveUser(context: Context, user: User) {
     val familyId = user.familyId
 
-    val newFamily = Family(familyId = familyId, userIds = mutableListOf(user.userId), settingsId = "")
+    val newSettings = AppSettings(user.settingId,false,"")
+
+    val newFamily = Family(familyId = familyId, userIds = mutableListOf(user.userId), settingsId = user.settingId)
 
     firestore.collection("users").document(user.userId).set(user)
         .addOnSuccessListener {
@@ -336,6 +341,14 @@ private fun createFamilyAndSaveUser(context: Context, user: User) {
         }
 
     firestore.collection("families").document(familyId).set(newFamily)
+        .addOnSuccessListener {
+            Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+        }
+
+    firestore.collection("settings").document(user.settingId).set(newSettings)
         .addOnSuccessListener {
             Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
         }
@@ -372,20 +385,8 @@ private fun isValidPassword(password: String): Boolean {
 }
 
 /*
-Next steps for Lauren:
-- settings
-    - set name and preferred name
-    - others???
-
-Plan for settings
-- on the first page have "Hello username"
-- edit name button
-- view family button
-- button for shared budget
-- button for notifications
-
-Add 3 hours for
+Add 5 hours for
 very rough layout ready
 got name and prefName database update to work
-
+got basic setting editing done
  */
