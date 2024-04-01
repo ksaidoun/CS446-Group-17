@@ -250,7 +250,7 @@ fun BottomNavBar(currentUser: User){
                 Gallery(photos)
             }
             composable("Setting") {
-                Setting(innerPadding)
+                Setting(currentUser)
                 // Screen content for Setting
             }
         }

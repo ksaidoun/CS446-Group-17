@@ -1,166 +1,190 @@
 package com.example.famplanapp
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import java.util.Calendar
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Card
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import android.os.Bundle
+import android.text.Layout
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Text
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.famplanapp.globalClasses.User
+import com.example.famplanapp.ui.theme.Purple40
+import androidx.compose.material.Button
+import androidx.compose.material.Switch
+import com.example.famplanapp.globalClasses.AppSettings
+import com.example.famplanapp.globalClasses.FamilyOfUsers
+
+
+/*
+Plan for settings
+- on the first page have "Hello username"
+- edit name button
+- view family button
+- button for shared budget
+- button for notifications
+
+ */
 
 @Composable
-fun Setting(innerPadding: PaddingValues) {
+fun Setting(currentUser: User) {
 
     var name by remember { mutableStateOf("") }
-    var preferrdName by remember { mutableStateOf("") }
+    var preferredName by remember { mutableStateOf("") }
+    var sharedBudgetEnabled by remember { mutableStateOf(false) }
+    var notificationEnabled by remember { mutableStateOf(false) }
+    var saveSettings by remember { mutableStateOf(false) }
+
+
+    var users by remember { mutableStateOf(mutableListOf<User>()) }
+
+    val reference = firestore.collection("users").whereEqualTo("familyId",currentUser.familyId)
+
+    reference.get().addOnSuccessListener { querySnapshot ->
+        if (!querySnapshot.isEmpty) {
+            val documents = querySnapshot.documents
+            documents.forEach { document ->
+                val user = User(
+                    document.getString("userId") ?: "",
+                    document.getString("familyId") ?: "",
+                    document.getString("name") ?: "No Name",
+                    document.getString("preferredName") ?: "No Preference",
+                    document.getString("email") ?: "",
+                    mutableListOf(),
+                    document.getString("colour") ?: "",
+                    document.getString("role") ?: "",
+                    document.getString("settingId") ?: ""
+                )
+
+                val taskIds = document.get("taskIds") as? MutableList<String>
+                if (taskIds != null) {
+                    user.tasksIds = taskIds
+                }
+                users.add(user)
+            }
+        }
+    }
+
 
     Column {
         Spacer(modifier = Modifier.height(70.dp))
-        Text(text = "Name:")
-        OutlinedTextField(
-            value = name,
-            onValueChange = { newValue ->
-                name = newValue
-            },
-            modifier = Modifier.padding(16.dp)
-        )
-        Text(text = "Preferred Name:")
-        OutlinedTextField(
-            value = preferrdName,
-            onValueChange = { newValue ->
-                preferrdName = newValue
-            },
-            modifier = Modifier.padding(16.dp)
-        )
-    }
 
-    /*
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Spacer(modifier = Modifier.height(70.dp))
         Row(
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .fillMaxWidth()
-                .height(120.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colors.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "test1"
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colors.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "test2"
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colors.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "test3"
-                )
-            }
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ){
+            Text(
+                text = "Settings",
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center,
+                color = Purple40,
+                fontWeight = FontWeight.Bold,
+                //modifier = Modifier.padding(32.dp)
+            )
+
         }
+
         Spacer(modifier = Modifier.height(10.dp))
+        Column {
+            Text(text = "Name:")
+            Spacer(modifier = Modifier.height(5.dp))
+            OutlinedTextField(
+                value = name,
+                onValueChange = { newValue ->
+                    name = newValue
+                },
+                modifier = Modifier.padding(16.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(text = "Preferred Name:")
+            Spacer(modifier = Modifier.height(5.dp))
+            OutlinedTextField(
+                value = preferredName,
+                onValueChange = { newValue ->
+                    preferredName = newValue
+                },
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Shared Budget Text Field and Slider
         Row(
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .fillMaxWidth()
-                .height(120.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colors.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "test1"
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colors.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "test2"
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(shape = RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colors.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "test3"
-                )
+            Text("Shared Budget for Family:")
+            Spacer(modifier = Modifier.width(16.dp))
+            Switch(
+                checked = sharedBudgetEnabled,
+                onCheckedChange = { sharedBudgetEnabled = it },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Notification Text Field and Slider
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Notification")
+            Spacer(modifier = Modifier.width(16.dp))
+            Switch(
+                checked = notificationEnabled,
+                onCheckedChange = { notificationEnabled = it }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+        Button(
+            onClick = { saveSettings = true }
+        ) {
+            Text("Save")
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ){
+            Text(
+                text = "Family Members",
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center,
+                color = Purple40,
+                fontWeight = FontWeight.Bold,
+                //modifier = Modifier.padding(32.dp)
+            )
+
+        }
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Center
+        ) {
+            users.forEach { user ->
+                Row(
+
+                ) {
+                    Text("${user.userId}")
+                    Spacer(modifier = Modifier.height(5.dp))
+                }
             }
         }
     }
-
-     */
 }
