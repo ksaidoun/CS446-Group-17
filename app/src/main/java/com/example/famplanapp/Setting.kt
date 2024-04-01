@@ -1,5 +1,6 @@
 package com.example.famplanapp
 
+import android.content.Context
 import android.text.Layout
 import android.widget.*
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +28,9 @@ import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.ui.theme.Purple40
 import androidx.compose.material.Button
 import androidx.compose.material.Switch
+import androidx.compose.ui.platform.LocalContext
 import com.example.famplanapp.globalClasses.AppSettings
+import com.example.famplanapp.globalClasses.Family
 import com.example.famplanapp.globalClasses.FamilyOfUsers
 
 
@@ -44,8 +47,12 @@ Plan for settings
 @Composable
 fun Setting(currentUser: User) {
 
-    var name by remember { mutableStateOf("") }
-    var preferredName by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    val curId = currentUser.userId
+
+    var name by remember { mutableStateOf(currentUser.name) }
+    var preferredName by remember { mutableStateOf(currentUser.preferredName) }
     var sharedBudgetEnabled by remember { mutableStateOf(false) }
     var notificationEnabled by remember { mutableStateOf(false) }
     var saveSettings by remember { mutableStateOf(false) }
@@ -75,11 +82,12 @@ fun Setting(currentUser: User) {
                 if (taskIds != null) {
                     user.tasksIds = taskIds
                 }
-                users.add(user)
+                if(!users.contains(user)){
+                    users.add(user)
+                }
             }
         }
     }
-
 
     Column {
         Spacer(modifier = Modifier.height(70.dp))
@@ -154,7 +162,15 @@ fun Setting(currentUser: User) {
 
         Spacer(modifier = Modifier.height(10.dp))
         Button(
-            onClick = { saveSettings = true }
+            onClick = {
+                if (curId.isNotEmpty()) { // Check if userId is not empty or null
+                    updateUser(context, curId, name, preferredName)
+                    saveSettings = true
+                } else {
+                    // Handle the case where userId is null or empty
+                    Toast.makeText(context, "User ID is null or empty", Toast.LENGTH_LONG).show()
+                }
+            }
         ) {
             Text("Save")
         }
@@ -181,10 +197,31 @@ fun Setting(currentUser: User) {
                 Row(
 
                 ) {
-                    Text("${user.userId}")
+                    Text("${user.preferredName}")
                     Spacer(modifier = Modifier.height(5.dp))
                 }
             }
         }
     }
+}
+
+private fun updateUser(context: Context, userId: String, name: String, prefName : String) {
+
+    //works when .document("user2")
+
+    firestore.collection("users").document(userId).update("name",name)
+        .addOnSuccessListener {
+            Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+        }
+
+    firestore.collection("users").document(userId).update("preferredName",prefName)
+        .addOnSuccessListener {
+            Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+        }
 }

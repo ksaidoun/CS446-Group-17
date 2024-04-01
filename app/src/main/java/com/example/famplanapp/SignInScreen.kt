@@ -274,7 +274,7 @@ fun SignInScreen() {
                                             if (!querySnapshot.isEmpty) {
                                                 val document = querySnapshot.documents[0]
                                                 val user = User(
-                                                    document.getString("userid") ?: "",
+                                                    document.getString("userId") ?: "",
                                                     document.getString("familyId") ?: "",
                                                     document.getString("name") ?: "",
                                                     document.getString("preferredName") ?: "",
@@ -383,4 +383,9 @@ Plan for settings
 - view family button
 - button for shared budget
 - button for notifications
+
+Add 3 hours for
+very rough layout ready
+got name and prefName database update to work
+
  */
