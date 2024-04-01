@@ -32,6 +32,8 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.famplanapp.globalClasses.AppSettings
 import com.example.famplanapp.globalClasses.Family
 import com.example.famplanapp.globalClasses.FamilyOfUsers
+import com.example.famplanapp.schedule.users
+import com.google.firebase.firestore.QuerySnapshot
 
 
 /*
@@ -43,6 +45,34 @@ Plan for settings
 - button for notifications
 
  */
+
+fun getFamilyUsers(querySnapshot: QuerySnapshot): MutableList<User> {
+    if (!querySnapshot.isEmpty) {
+        val documents = querySnapshot.documents
+        documents.forEach { document ->
+            val user = User(
+                document.getString("userId") ?: "",
+                document.getString("familyId") ?: "",
+                document.getString("name") ?: "No Name",
+                document.getString("preferredName") ?: "No Preference",
+                document.getString("email") ?: "",
+                mutableListOf(),
+                document.getString("colour") ?: "",
+                document.getString("role") ?: "",
+                document.getString("settingId") ?: ""
+            )
+
+            val taskIds = document.get("taskIds") as? MutableList<String>
+            if (taskIds != null) {
+                user.tasksIds = taskIds
+            }
+            if(!users.contains(user)){
+                users.add(user)
+            }
+        }
+    }
+    return users
+}
 
 @Composable
 fun Setting(currentUser: User) {
@@ -63,30 +93,7 @@ fun Setting(currentUser: User) {
     val reference = firestore.collection("users").whereEqualTo("familyId",currentUser.familyId)
 
     reference.get().addOnSuccessListener { querySnapshot ->
-        if (!querySnapshot.isEmpty) {
-            val documents = querySnapshot.documents
-            documents.forEach { document ->
-                val user = User(
-                    document.getString("userId") ?: "",
-                    document.getString("familyId") ?: "",
-                    document.getString("name") ?: "No Name",
-                    document.getString("preferredName") ?: "No Preference",
-                    document.getString("email") ?: "",
-                    mutableListOf(),
-                    document.getString("colour") ?: "",
-                    document.getString("role") ?: "",
-                    document.getString("settingId") ?: ""
-                )
-
-                val taskIds = document.get("taskIds") as? MutableList<String>
-                if (taskIds != null) {
-                    user.tasksIds = taskIds
-                }
-                if(!users.contains(user)){
-                    users.add(user)
-                }
-            }
-        }
+        getFamilyUsers(querySnapshot)
     }
 
     Column {

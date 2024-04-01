@@ -14,10 +14,8 @@ import java.time.LocalDateTime
 
 
 class TasksViewModel: ViewModel() {
-    //private var tasksList = mutableListOf<Task>()
     var _tasksList = MutableLiveData<List<Task>>()
     val tasksList: LiveData<List<Task>> get() = _tasksList
-    //var currDisplayedTasks = tasksList
     private val _currDisplayedTasks = MutableLiveData<List<Task>>(emptyList())
     val currDisplayedTasks: LiveData<List<Task>> get() = _currDisplayedTasks
     var currFilter = "My Tasks"

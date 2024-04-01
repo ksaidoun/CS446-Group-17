@@ -53,24 +53,6 @@ import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.tasks.TasksViewModel
 import com.example.famplanapp.voting.Voting
 
-
-// TEST VALUES FOR USERS & FAMILY
-
-val tempSettings: AppSettings = AppSettings("0",false, "Push")
-val tempUser: User = User(
-    "1",
-    "",
-    "David Smith",
-    "David",
-    "testemail@gmail.com",
-    mutableListOf<String>(),
-    "#dc143c",
-    "Admin"
-)
-var tempUsers: List<User> = listOf(tempUser)
-var currUser = tempUser
-
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BottomNavBar(currentUser: User){

@@ -47,8 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.example.famplanapp.darkPurple
+import com.example.famplanapp.getFamilyUsers
 import com.example.famplanapp.globalClasses.User
-import com.example.famplanapp.tempUsers
+import com.example.famplanapp.Setting
+import com.example.famplanapp.currUser
+import com.example.famplanapp.firestore
 import java.text.SimpleDateFormat
 import java.time.DateTimeException
 import java.time.LocalDateTime
@@ -226,8 +229,18 @@ fun AssigneeDropdown(prevAssignee: User? = null): User {
     var expanded by remember { mutableStateOf(false) }
     // if "None" is selected as assignee
     val noneUser = User("", "", "None", "None")
-    var assignees = mutableListOf(noneUser)
-    assignees.addAll(tempUsers)
+    var assignees by remember  { mutableStateOf(mutableListOf(noneUser))}
+
+    val reference = firestore.collection("users").whereEqualTo("familyId", currUser.familyId)
+    reference.get().addOnSuccessListener { querySnapshot ->
+        val users = getFamilyUsers(querySnapshot)
+        for (user in users) {
+            if(!assignees.contains(user)){
+                assignees.add(user)
+            }
+        }
+
+    }
     // track selected assignee
     var selectedAssignee by remember { mutableStateOf(prevAssignee) }
     if (prevAssignee == null) selectedAssignee = assignees.first()

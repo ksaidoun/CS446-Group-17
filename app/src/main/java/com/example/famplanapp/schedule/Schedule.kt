@@ -29,7 +29,7 @@ import java.util.Date
 var eventList = mutableListOf<Event>()
 var currId = 0
 var sharedBudget by mutableStateOf(0)
-var users = mutableListOf<User>(User("Bob"), User("Carol"))
+var users = mutableListOf<User>(User("Bob", name = "Bob", preferredName = "Bob"), User("Carol", name = "Carol", preferredName = "Carol"))
 
 
 fun makeEvent(eventName: String, attendees: String, cost: String){

@@ -1,6 +1,7 @@
+package com.example.famplanapp
+
 import android.content.ContentValues.TAG
 import android.content.Context
-import android.graphics.Color
 import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
@@ -25,23 +26,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 //import com.example.famplanapp.BottomNavBar
-import com.example.famplanapp.*
-import com.example.famplanapp.R
 import com.google.firebase.auth.FirebaseAuth
 import com.example.famplanapp.globalClasses.AppSettings
 import com.example.famplanapp.globalClasses.Family
 import com.example.famplanapp.globalClasses.User
-import com.example.famplanapp.tasks.Task
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import com.example.famplanapp.firestore
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FieldValue
+
+
+var currUser = User()
 
 @Composable
 fun SignInButton(onClickAction: () -> Unit) {
@@ -104,7 +99,6 @@ fun SignInScreen() {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var joinFamily by remember { mutableStateOf(false) }
     var familyCodeText by remember { mutableStateOf("") }
-    var currentUser by remember {mutableStateOf<User?>(null)}
 
     var familyId = ""
     var uid = ""
@@ -145,7 +139,7 @@ fun SignInScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (signInClicked) {
-            currentUser?.let{BottomNavBar(it)}
+            currUser?.let{BottomNavBar(it)}
         } else {
             Image(
                 painter = painterResource(id = R.drawable.logowname),
@@ -209,11 +203,11 @@ fun SignInScreen() {
                                             if (joinFamily) {
                                                 settingsId = "setting" + familyCodeText.replace(Regex("[^0-9]"), "")
                                                 val user = User(uid, familyCodeText,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "User",settingsId )
-                                                currentUser = user
+                                                currUser = user
                                                 saveUserAndJoinFamilyToFirebase(context,user,familyCodeText)
                                             } else {
                                                 val user = User(uid, familyId,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "Admin",settingsId )
-                                                currentUser = user
+                                                currUser = user
                                                 createFamilyAndSaveUser(context, user)
                                             }
                                             signInClicked = true
@@ -292,11 +286,11 @@ fun SignInScreen() {
                                                 if (taskIds != null) {
                                                     user.tasksIds = taskIds
                                                 }
-                                                currentUser = user
+                                                currUser = user
                                                 signInClicked = true
                                             }else{
                                                 val user = User(uid, familyId,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "User", settingsId)
-                                                currentUser = user
+                                                currUser = user
                                                 signInClicked = true
                                             }
                                         }
