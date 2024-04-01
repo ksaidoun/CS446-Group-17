@@ -221,7 +221,7 @@ fun BottomNavBar(currentUser: User){
     ) { innerPadding ->
         NavHost(navController, startDestination = "Home") {
             composable("Home") {
-                Home(innerPadding, tasksViewModel)
+                Home(innerPadding, tasksViewModel, navController)
                 // Screen content for Home
             }
             composable("Schedule") {
