@@ -22,9 +22,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.famplanapp.schedule.eventList
+import com.example.famplanapp.tasks.TasksViewModel
+import com.example.famplanapp.voting.pollList
 
 //val CustomPurple = Color(0xFF5D3FD3)
 val taskSentences = listOf(
@@ -43,8 +48,13 @@ val eventsSentences = listOf(
     "Sunday brunch",
 )
 @Composable
-fun Home(innerPadding: PaddingValues) {
+fun Home(innerPadding: PaddingValues, viewModel: TasksViewModel) {
     val currentTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val tasksState = viewModel.tasksList.observeAsState(initial = emptyList())
+    val taskTitles = tasksState.value.map { it.title }
+
+    val pollTitles = pollList.map { it.subject }
+    val eventTitles = eventList.map { it.title }
 
     // Determine the appropriate greeting based on the current time
     val greeting = when (currentTime) {
@@ -78,7 +88,9 @@ fun Home(innerPadding: PaddingValues) {
                     Text("Upcoming Tasks",
                         modifier = Modifier.padding(10.dp),
                         fontSize = 16.sp)
-                    LazyButtons(sentences = taskSentences)
+                    LazyButtons(
+                        sentences = taskTitles
+                    )
                 }
             }
         //}
@@ -97,7 +109,7 @@ fun Home(innerPadding: PaddingValues) {
                     Text("Upcoming Polls",
                         modifier = Modifier.padding(10.dp),
                         fontSize = 16.sp)
-                    LazyButtons(sentences = pollsSentences)
+                    LazyButtons(sentences = pollTitles )
                 }
             }
         //}
@@ -116,7 +128,7 @@ fun Home(innerPadding: PaddingValues) {
                     Text("Upcoming Events",
                         modifier = Modifier.padding(10.dp),
                         fontSize = 16.sp)
-                    LazyButtons(sentences = eventsSentences)
+                    LazyButtons(sentences = eventTitles)
                 }
             }
         //}
@@ -155,8 +167,9 @@ fun LazyButtons(sentences: List<String>) {
             ) {
                 Text(sentences[index], style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = if (sentences[index].length > 1) 15.sp else 16.sp
                 )
+
                 )
             }
             Spacer(modifier = Modifier.height(15.dp))

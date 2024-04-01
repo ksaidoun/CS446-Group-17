@@ -26,7 +26,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
@@ -222,7 +221,7 @@ fun BottomNavBar(currentUser: User){
     ) { innerPadding ->
         NavHost(navController, startDestination = "Home") {
             composable("Home") {
-                Home(innerPadding)
+                Home(innerPadding, tasksViewModel)
                 // Screen content for Home
             }
             composable("Schedule") {
