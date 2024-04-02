@@ -47,11 +47,27 @@ fun SignInButton(onClickAction: () -> Unit) {
 }
 
 @Composable
-fun SignUpButton(onClickAction: () -> Unit, onJoinFamilyChecked: (Boolean) -> Unit, joinFamily: Boolean, familyCodeText: String, onFamilyCodeChange: (String) -> Unit, familyId: String) {
+fun SignUpButton(
+    onClickAction: () -> Unit,
+    onJoinFamilyChecked: (Boolean) -> Unit,
+    joinFamily: Boolean,
+    familyCodeText: String,
+    onFamilyCodeChange: (String) -> Unit,
+    familyId: String,
+    showExistingUserScreen: Boolean,
+    onBackAction: () -> Unit
+) {
     Column {
-        Button(onClick = onClickAction) {
-            Text("Sign up", fontSize = 16.sp)
+        Row(){
+            Button(onClick = onClickAction) {
+                Text("Sign up", fontSize = 16.sp)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(onClick = onBackAction) {
+                Text("Back", fontSize = 16.sp)
+            }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
@@ -101,6 +117,8 @@ fun SignInScreen() {
     var joinFamily by remember { mutableStateOf(false) }
     var familyCodeText by remember { mutableStateOf("") }
 
+    var showExistingUserScreen by remember { mutableStateOf(true) }
+
     var familyId by remember { mutableStateOf("") }
     var uid = ""
     var settingsId = ""
@@ -139,104 +157,16 @@ fun SignInScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (signInClicked) {
-            currUser?.let{BottomNavBar(it)}
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.logowname),
-                contentDescription = "Logo",
-                modifier = Modifier.size(120.dp)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (signUpClicked) {
-                Text(
-                    "Email:",
-                    fontSize = 16.sp
-                )
-                OutlinedTextField(
-                    value = emailText,
-                    onValueChange = { newText ->
-                        emailText = newText
-                        errorMessage = null
-                    }
+        if(showExistingUserScreen){
+            if (signInClicked) {
+                currUser?.let{BottomNavBar(it)}
+            }else {
+                Image(
+                    painter = painterResource(id = R.drawable.logowname),
+                    contentDescription = "Logo",
+                    modifier = Modifier.size(120.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Password:",
-                    fontSize = 16.sp
-                )
-                OutlinedTextField(
-                    value = passwordText,
-                    visualTransformation = PasswordVisualTransformation(),
-                    onValueChange = { newText ->
-                        passwordText = newText
-                        errorMessage = null
-                    }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Verify Password:",
-                    fontSize = 16.sp
-                )
-                OutlinedTextField(
-                    value = verifyPasswordText,
-                    visualTransformation = PasswordVisualTransformation(),
-                    onValueChange = { newText ->
-                        verifyPasswordText = newText
-                        errorMessage = null
-                    }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                errorMessage?.let { message ->
-                    Text(
-                        message,
-                        fontSize = 12.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                SignUpButton(
-                    onClickAction = {
-                        if (passwordText == verifyPasswordText) {
-                            if (isValidEmail(emailText) && isValidPassword(passwordText)) {
-                                auth.createUserWithEmailAndPassword(emailText, passwordText)
-                                    .addOnCompleteListener { task ->
-                                        if (task.isSuccessful) {
-
-                                            if (joinFamily) {
-                                                settingsId = "setting" + familyCodeText.replace(Regex("[^0-9]"), "")
-                                                val user = User(uid, familyCodeText,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "User",settingsId )
-                                                currUser = user
-                                                saveUserAndJoinFamilyToFirebase(context,user,familyCodeText)
-                                            } else {
-                                                val user = User(uid, familyId,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "Admin",settingsId )
-                                                currUser = user
-                                                createFamilyAndSaveUser(context, user)
-                                            }
-                                            signInClicked = true
-                                        } else {
-                                            Log.e(TAG, "createUserWithEmailAndPassword failed: ${task.exception}")
-                                            errorMessage = "Failed to create user: ${task.exception?.message}"
-                                        }
-                                    }
-                            } else {
-                                if(!isValidEmail(emailText)){
-                                    errorMessage = "Invalid email format."
-                                }else {
-                                    errorMessage = "Invalid password format."
-                                }
-                            }
-                        } else {
-                            errorMessage = "Passwords do not match."
-                        }
-                    },
-                    onJoinFamilyChecked = { checked -> joinFamily = checked },
-                    joinFamily = joinFamily,
-                    familyCodeText = familyCodeText,
-                    onFamilyCodeChange = { newText -> familyCodeText = newText },
-                    familyId = familyId
-                )
-            } else {
                 Text(
                     "Email:",
                     fontSize = 16.sp
@@ -262,14 +192,16 @@ fun SignInScreen() {
                 Spacer(modifier = Modifier.height(16.dp))
                 Row {
                     SignInButton {
-                        if(emailText.isNotEmpty() && passwordText.isNotEmpty()){
+                        if (emailText.isNotEmpty() && passwordText.isNotEmpty()) {
                             auth.signInWithEmailAndPassword(emailText, passwordText)
                                 .addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
-                                        firestore.collection("users").whereEqualTo("email",emailText).get()
+                                        firestore.collection("users")
+                                            .whereEqualTo("email", emailText).get()
 
 
-                                        val reference = firestore.collection("users").whereEqualTo("email",emailText)
+                                        val reference = firestore.collection("users")
+                                            .whereEqualTo("email", emailText)
 
                                         reference.get().addOnSuccessListener { querySnapshot ->
                                             if (!querySnapshot.isEmpty) {
@@ -286,14 +218,25 @@ fun SignInScreen() {
                                                     document.getString("settingId") ?: "error"
                                                 )
 
-                                                val taskIds = document.get("taskIds") as? MutableList<String>
+                                                val taskIds =
+                                                    document.get("taskIds") as? MutableList<String>
                                                 if (taskIds != null) {
                                                     user.tasksIds = taskIds
                                                 }
                                                 currUser = user
                                                 signInClicked = true
-                                            }else{
-                                                val user = User(uid, familyId,"No Name", "No Preference", emailText, mutableListOf(), "#dc143c", "User", settingsId)
+                                            } else {
+                                                val user = User(
+                                                    uid,
+                                                    familyId,
+                                                    "No Name",
+                                                    "No Preference",
+                                                    emailText,
+                                                    mutableListOf(),
+                                                    "#dc143c",
+                                                    "User",
+                                                    settingsId
+                                                )
                                                 currUser = user
                                                 signInClicked = true
                                             }
@@ -306,7 +249,7 @@ fun SignInScreen() {
                                         ).show()
                                     }
                                 }
-                        }else{
+                        } else {
                             Toast.makeText(
                                 context, "Email and password cannot be empty.",
                                 Toast.LENGTH_SHORT
@@ -314,9 +257,146 @@ fun SignInScreen() {
                         }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
-                    Button(onClick = { signUpClicked = true }) {
+                    Button(onClick = {
+                        signUpClicked = true;
+                        showExistingUserScreen = false}) {
                         Text("New User", fontSize = 16.sp)
+
                     }
+                }
+            }
+        }else{
+            if(signInClicked == true){
+                currUser?.let{BottomNavBar(it)}
+            }else{
+                if (signUpClicked) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logowname),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(120.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Email:",
+                        fontSize = 16.sp
+                    )
+                    OutlinedTextField(
+                        value = emailText,
+                        onValueChange = { newText ->
+                            emailText = newText
+                            errorMessage = null
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Password:",
+                        fontSize = 16.sp
+                    )
+                    OutlinedTextField(
+                        value = passwordText,
+                        visualTransformation = PasswordVisualTransformation(),
+                        onValueChange = { newText ->
+                            passwordText = newText
+                            errorMessage = null
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Verify Password:",
+                        fontSize = 16.sp
+                    )
+                    OutlinedTextField(
+                        value = verifyPasswordText,
+                        visualTransformation = PasswordVisualTransformation(),
+                        onValueChange = { newText ->
+                            verifyPasswordText = newText
+                            errorMessage = null
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    errorMessage?.let { message ->
+                        Text(
+                            message,
+                            fontSize = 12.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    SignUpButton(
+                        onClickAction = {
+                            if (passwordText == verifyPasswordText) {
+                                if (isValidEmail(emailText) && isValidPassword(passwordText)) {
+                                    auth.createUserWithEmailAndPassword(emailText, passwordText)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+
+                                                if (joinFamily) {
+                                                    settingsId = "setting" + familyCodeText.replace(
+                                                        Regex("[^0-9]"),
+                                                        ""
+                                                    )
+                                                    val user = User(
+                                                        uid,
+                                                        familyCodeText,
+                                                        "No Name",
+                                                        "No Preference",
+                                                        emailText,
+                                                        mutableListOf(),
+                                                        "#dc143c",
+                                                        "User",
+                                                        settingsId
+                                                    )
+                                                    currUser = user
+                                                    saveUserAndJoinFamilyToFirebase(
+                                                        context,
+                                                        user,
+                                                        familyCodeText
+                                                    )
+                                                } else {
+                                                    val user = User(
+                                                        uid,
+                                                        familyId,
+                                                        "No Name",
+                                                        "No Preference",
+                                                        emailText,
+                                                        mutableListOf(),
+                                                        "#dc143c",
+                                                        "Admin",
+                                                        settingsId
+                                                    )
+                                                    currUser = user
+                                                    createFamilyAndSaveUser(context, user)
+                                                }
+                                                signInClicked = true
+                                            } else {
+                                                Log.e(
+                                                    TAG,
+                                                    "createUserWithEmailAndPassword failed: ${task.exception}"
+                                                )
+                                                errorMessage =
+                                                    "Failed to create user: ${task.exception?.message}"
+                                            }
+                                        }
+                                } else {
+                                    if (!isValidEmail(emailText)) {
+                                        errorMessage = "Invalid email format."
+                                    } else {
+                                        errorMessage = "Invalid password format."
+                                    }
+                                }
+                            } else {
+                                errorMessage = "Passwords do not match."
+                            }
+                        },
+                        onBackAction = {
+                            showExistingUserScreen = true
+                        },
+                        onJoinFamilyChecked = { checked -> joinFamily = checked },
+                        joinFamily = joinFamily,
+                        familyCodeText = familyCodeText,
+                        onFamilyCodeChange = { newText -> familyCodeText = newText },
+                        familyId = familyId,
+                        showExistingUserScreen = showExistingUserScreen
+                    )
                 }
             }
         }

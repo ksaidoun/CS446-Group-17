@@ -49,6 +49,12 @@ import com.example.famplanapp.globalClasses.FamilyOfUsers
 import com.example.famplanapp.schedule.users
 import com.google.firebase.firestore.QuerySnapshot
 
+/*
+add sign out
+make button go back to sign screen **** important
+make button go back to original sign in screen
+add shared budget to database
+ */
 
 fun getFamilyUsers(querySnapshot: QuerySnapshot): MutableList<User> {
     if (!querySnapshot.isEmpty) {
