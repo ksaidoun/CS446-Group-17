@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.famplanapp.schedule.eventList
+import com.example.famplanapp.schedule.EventsViewModel
 import com.example.famplanapp.tasks.TasksViewModel
 import com.example.famplanapp.voting.pollList
 
@@ -50,13 +50,15 @@ val eventsSentences = listOf(
     "Sunday brunch",
 )
 @Composable
-fun Home(innerPadding: PaddingValues, viewModel: TasksViewModel, navController: NavController) {
+fun Home(innerPadding: PaddingValues, eventViewModel: EventsViewModel, viewModel: TasksViewModel, navController: NavController) {
     val currentTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val tasksState = viewModel.tasksList.observeAsState(initial = emptyList())
     val taskTitles = tasksState.value.map { it.title }
 
     val pollTitles = pollList.map { it.subject }
-    val eventTitles = eventList.map { it.title }
+
+    val eventsState = eventViewModel.eventList.observeAsState(initial = emptyList())
+    val eventTitles = eventsState.value.map { it.title }
 
     // Determine the appropriate greeting based on the current time
     val greeting = when (currentTime) {

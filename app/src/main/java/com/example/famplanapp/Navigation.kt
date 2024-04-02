@@ -45,6 +45,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.famplanapp.gallery.Gallery
 import com.example.famplanapp.globalClasses.*
+import com.example.famplanapp.schedule.EventsViewModel
 import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Task
 import com.example.famplanapp.tasks.Tasks
@@ -66,6 +67,7 @@ fun BottomNavBar(currentUser: User){
 
     val navController = rememberNavController()
     val tasksViewModel: TasksViewModel = viewModel()
+    val eventsViewModel: EventsViewModel = viewModel()
     var menuExpanded by remember { mutableStateOf(false) }
 
     val navItems = listOf(
@@ -213,12 +215,12 @@ fun BottomNavBar(currentUser: User){
     ) { innerPadding ->
         NavHost(navController, startDestination = "Home") {
             composable("Home") {
-                Home(innerPadding, tasksViewModel, navController)
+                Home(innerPadding, eventsViewModel, tasksViewModel, navController)
                 // Screen content for Home
             }
             composable("Schedule") {
                 // Screen content for Schedule
-                Schedule(innerPadding)
+                Schedule(eventsViewModel, innerPadding)
             }
             composable("Tasks") {
                 // Screen content for Tasks
