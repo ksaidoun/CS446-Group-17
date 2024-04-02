@@ -1,5 +1,7 @@
 package com.example.famplanapp.schedule
 
+import android.content.ContentValues
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,43 +19,55 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.example.famplanapp.firestore
 import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.lightPurple
+import com.example.famplanapp.tasks.Task
+import com.google.firebase.firestore.toObject
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
 import java.util.Date
 
-//data class Event(val id: Int, val title: String, val invitedUsers: List<User>, val cost: Int)
 
-var eventList = mutableListOf<Event>()
+
+
 var currId = 0
 var sharedBudget by mutableStateOf(0)
 var users = mutableListOf<User>(User("Bob"), User("Carol"))
 
 
-fun makeEvent(eventName: String, attendees: String, cost: String){
+
+
+
+
+fun makeEvent(eventsViewModel: EventsViewModel, eventName: String, attendees: String, cost: String){
     val listNames = attendees.split(", ")
     val listUsers = mutableListOf<User>()
-    var index = 0;
+    var index: Int;
     for (name in listNames) {
         index = users.indexOfFirst{it -> it.name == name}
         if(index >= 0) {
             listUsers.add(users[index])
         }
     }
-    val myEvent = Event(id=currId, title=eventName, invitedUsers=listUsers, cost=cost.toInt());
-    ++currId
-    eventList.add(myEvent)
+    val myEvent = Event(/*id=currId.toString(), */title=eventName, invitedUsers=listUsers, cost=cost.toInt());
+   // ++currId
+    //eventList.add(myEvent)
+    eventsViewModel.addEvent(myEvent)
     sharedBudget -= cost.toInt()
 }
 
 @Composable
-fun CalendarUI(
+fun CalendarUI(eventsViewModel: EventsViewModel,
     currentWeekSunday: LocalDate,
     selectedCells: Set<Pair<Int, Int>>,
     onCellClick: (Int, Int) -> Unit
 ) {
+    //fetchEventsFromDb()
     var isDialogOpen by remember { mutableStateOf(false) }
     var eventName by remember { mutableStateOf(TextFieldValue()) }
     var attendees by remember { mutableStateOf(TextFieldValue()) }
@@ -124,7 +138,7 @@ fun CalendarUI(
                 title = { Text("Event Details") },
                 confirmButton = {
                     Button(onClick = {
-                        makeEvent(eventName.text, attendees.text, cost.text)
+                        makeEvent(eventsViewModel, eventName.text, attendees.text, cost.text)
                         isDialogOpen = false
                     }) {
                         Text("Save")
@@ -217,7 +231,7 @@ fun daysInMonth(monthIndex: Int): Int {
 }
 
 @Composable
-fun Schedule(innerPadding: PaddingValues) {
+fun Schedule(eventsViewModel: EventsViewModel, innerPadding: PaddingValues) {
     var currentWeekSunday by remember { mutableStateOf(LocalDate.now().with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SUNDAY))) }
     var selectedCells by remember { mutableStateOf(emptySet<Pair<Int, Int>>()) }
 
@@ -262,7 +276,7 @@ fun Schedule(innerPadding: PaddingValues) {
             textStyle = MaterialTheme.typography.body1,
             label = { Text("Shared Budget") }
         )
-        CalendarUI(
+        CalendarUI(eventsViewModel = eventsViewModel,
             currentWeekSunday = currentWeekSunday,
             selectedCells = selectedCells,
             onCellClick = { rowIndex, columnIndex ->
