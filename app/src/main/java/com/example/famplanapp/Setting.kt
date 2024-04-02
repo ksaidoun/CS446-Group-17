@@ -50,16 +50,6 @@ import com.example.famplanapp.schedule.users
 import com.google.firebase.firestore.QuerySnapshot
 
 
-/*
-Plan for settings
-- on the first page have "Hello username"
-- edit name button
-- view family button
-- button for shared budget
-- button for notifications
-
- */
-
 fun getFamilyUsers(querySnapshot: QuerySnapshot): MutableList<User> {
     if (!querySnapshot.isEmpty) {
         val documents = querySnapshot.documents
@@ -244,10 +234,13 @@ fun Setting(currentUser: User, navController: NavController) {
 
                         users.forEach { user ->
                             Row(
-
+                                modifier = Modifier.fillMaxWidth(),
+                                //horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("${user.preferredName}")
-                                Spacer(modifier = Modifier.height(5.dp))
+                                Text("${user.preferredName}",modifier = Modifier.weight(1f))
+                                Text(text = "${user.role}", textAlign= TextAlign.End,modifier = Modifier.weight(1f))
+                                //Spacer(modifier = Modifier.height(5.dp))
+
                             }
                         }
                     }
