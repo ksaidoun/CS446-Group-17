@@ -24,14 +24,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
+import com.example.famplanapp.currUser
+import com.example.famplanapp.firestore
+import com.example.famplanapp.getFamilyUsers
+import com.example.famplanapp.globalClasses.User
 import com.google.firebase.Timestamp
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 var displaying = mutableListOf<String>()
 
 @Composable
-fun FilterDropdown(tasksViewModel: TasksViewModel){
+fun FilterDropdown(tasksViewModel: TasksViewModel, assignees: MutableList<User?>){
     // expanded/visible dropdown or not
     var expanded by remember { mutableStateOf(false) }
     val filters = listOf("My Tasks", "All Tasks", "Unassigned")
@@ -78,11 +81,11 @@ fun FilterDropdown(tasksViewModel: TasksViewModel){
             }
         }
     }
-    TaskDisplayArea(tasksViewModel)
+    TaskDisplayArea(tasksViewModel, assignees)
 }
 
 @Composable
-fun TaskDisplayArea(tasksViewModel: TasksViewModel) {
+fun TaskDisplayArea(tasksViewModel: TasksViewModel, assignees: MutableList<User?>) {
     var showDialog by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<Task?>(null) }
 
@@ -114,7 +117,7 @@ fun TaskDisplayArea(tasksViewModel: TasksViewModel) {
                     .background(Color.White)
                 //.padding(16.dp)
             ) {
-                TaskEditor(selectedTask!!, tasksViewModel, showDialog)
+                TaskEditor(selectedTask!!, tasksViewModel, showDialog, assignees)
                 Button(
                     onClick = { showDialog = false },
                     modifier = Modifier
@@ -215,16 +218,27 @@ fun ToDoItem(task: Task, onItemClick: (String) -> Unit) {
 fun Tasks(tasksViewModel: TasksViewModel, innerPadding: PaddingValues) {
    // tasksViewModel.fetchTasksFromDb()
     var showDialog by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    val noneUser: User? = User(name = "None", preferredName = "None")
+    var assignees by remember { mutableStateOf(mutableListOf(noneUser)) }
+    val reference = firestore.collection("users").whereEqualTo("familyId", currUser.familyId)
+    reference.get().addOnSuccessListener { querySnapshot ->
+        val users = getFamilyUsers(querySnapshot)
+        for (user in users) {
+            if(!assignees.contains(user)){
+                assignees.add(user)
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize())
+    {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
             Spacer(modifier = Modifier.height(50.dp))
-            FilterDropdown(tasksViewModel)
+            FilterDropdown(tasksViewModel, assignees)
             // Dropdown menu in the top left goes here
-            TaskDisplayArea(tasksViewModel)
+            TaskDisplayArea(tasksViewModel, assignees)
         }
         // Button in the bottom right
         Box(
@@ -251,7 +265,7 @@ fun Tasks(tasksViewModel: TasksViewModel, innerPadding: PaddingValues) {
                         .background(Color.White)
                     //.padding(16.dp)
                 ) {
-                    TaskCreator(tasksViewModel, showDialog)
+                    TaskCreator(tasksViewModel, showDialog, assignees)
                     Button(
                         onClick = { showDialog = false },
                         modifier = Modifier
