@@ -47,19 +47,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.example.famplanapp.darkPurple
-import com.example.famplanapp.getFamilyUsers
 import com.example.famplanapp.globalClasses.User
-import com.example.famplanapp.Setting
-import com.example.famplanapp.currUser
-import com.example.famplanapp.firestore
 import java.text.SimpleDateFormat
 import java.time.DateTimeException
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.Calendar
 import java.util.Locale
 import com.google.firebase.Timestamp
-import java.time.Instant
 import java.time.ZoneId
 import java.util.Date
 
@@ -224,25 +218,11 @@ fun TasksTimePicker(defaultDate: LocalDateTime? = null): Pair<Int, Int> {
 }
 
 @Composable
-fun AssigneeDropdown(prevAssignee: User? = null): User {
+fun AssigneeDropdown(prevAssignee: User?, assignees: MutableList<User?>): User {
     // expanded state of the Text Field
     var expanded by remember { mutableStateOf(false) }
-    // if "None" is selected as assignee
-    val noneUser = User("", "", "None", "None")
-    var assignees by remember  { mutableStateOf(mutableListOf(noneUser))}
-
-    val reference = firestore.collection("users").whereEqualTo("familyId", currUser.familyId)
-    reference.get().addOnSuccessListener { querySnapshot ->
-        val users = getFamilyUsers(querySnapshot)
-        for (user in users) {
-            if(!assignees.contains(user)){
-                assignees.add(user)
-            }
-        }
-    }
     // track selected assignee
     var selectedAssignee by remember { mutableStateOf(prevAssignee) }
-    if (prevAssignee == null) selectedAssignee = assignees.first()
     var textFieldSize by remember { mutableStateOf(Size.Zero)}
     // up icon when expanded and down icon when collapsed
     val icon = if (expanded)
@@ -268,15 +248,14 @@ fun AssigneeDropdown(prevAssignee: User? = null): User {
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .width(with(LocalDensity.current){textFieldSize.width.toDp()})
+            modifier = Modifier.width(with(LocalDensity.current) { textFieldSize.width.toDp() })
         ) {
             assignees.forEach { user ->
                 DropdownMenuItem(onClick = {
                     selectedAssignee = user
                     expanded = false
                 }) {
-                    Text(text = user.preferredName)
+                    Text(text = user!!.preferredName)
                 }
             }
         }
@@ -286,7 +265,7 @@ fun AssigneeDropdown(prevAssignee: User? = null): User {
 
 
 @Composable
-fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
+fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean, assignees: MutableList<User?>) {
     val id = tasksViewModel.getTaskIdCount().toString()
     var title by remember { mutableStateOf("") }
     var dueDate: Timestamp? = null
@@ -296,8 +275,8 @@ fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
     var isCompleted = false
     tasksViewModel.increaseId()
 
-    var dueTime = Pair(0, 0)
-    var reminderTime = Pair(0, 0)
+    var dueTime: Pair<Int, Int>
+    var reminderTime: Pair<Int, Int>
     val context = LocalContext.current
     Column(
         modifier = Modifier.padding(16.dp)) {
@@ -330,7 +309,7 @@ fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
 
         }
         Spacer(modifier = Modifier.height(16.dp))
-        assignee = AssigneeDropdown(null)
+        assignee = AssigneeDropdown(assignees.first(), assignees)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = notes,
@@ -380,7 +359,7 @@ fun TaskCreator(tasksViewModel: TasksViewModel, showDialog: Boolean) {
 
 
 @Composable
-fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean) {
+fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean, assignees: MutableList<User?>) {
     var newTitle by remember { mutableStateOf(task.title) }
     var newDueDate by remember { mutableStateOf(task.dueDate) }
     var newRemindTime by remember { mutableStateOf(task.remindTime) }
@@ -431,7 +410,7 @@ fun TaskEditor(task: Task, tasksViewModel: TasksViewModel, showDialog: Boolean) 
             newRemindTime = localDateTimeToTimestamp(newRemind?.withHour(reminderTime.first)?.withMinute(reminderTime.second))
         }
         Spacer(modifier = Modifier.height(16.dp))
-        newAssignee = AssigneeDropdown(task.assignee)
+        newAssignee = AssigneeDropdown(task.assignee, assignees)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = newNotes,
