@@ -107,7 +107,7 @@ fun Setting(currentUser: User, navController: NavController) {
     val reference = firestore.collection("users").whereEqualTo("familyId",currentUser.familyId)
 
     reference.get().addOnSuccessListener { querySnapshot ->
-        getFamilyUsers(querySnapshot)
+        users = getFamilyUsers(querySnapshot)
     }
     Scaffold(
        topBar = {
@@ -136,10 +136,10 @@ fun Setting(currentUser: User, navController: NavController) {
                     .padding(16.dp)
             ) {
                 item {
-                    SectionOne("Username") {
+                    SectionOne("${currentUser.name}") {
                         // Display current username
                         Text(
-                            "Your current username is: [currentUsername]",
+                            "Your current preferred name is: ${currentUser.preferredName}",
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                         Divider(modifier = Modifier.padding(vertical = 16.dp))
@@ -220,7 +220,7 @@ fun Setting(currentUser: User, navController: NavController) {
                     Button(
                         onClick = {
                             if (curId.isNotEmpty()) { // Check if userId is not empty or null
-                                updateUser(context, curId, name, preferredName)
+                                updateUser(context, curId, name, preferredName, currentUser)
                                 saveSettings = true
                             } else {
                                 // Handle the case where userId is null or empty
@@ -239,19 +239,19 @@ fun Setting(currentUser: User, navController: NavController) {
                 item {
                     Divider(modifier = Modifier.padding(vertical = 16.dp))
                 }
-//                item {
-//                    SectionOne("Family Members") {
-//
-//                        users.forEach { user ->
-//                            Row(
-//
-//                            ) {
-//                                Text("${user.preferredName}")
-//                                Spacer(modifier = Modifier.height(5.dp))
-//                            }
-//                        }
-//                    }
-//                }
+                item {
+                    SectionOne("Family Members") {
+
+                        users.forEach { user ->
+                            Row(
+
+                            ) {
+                                Text("${user.preferredName}")
+                                Spacer(modifier = Modifier.height(5.dp))
+                            }
+                        }
+                    }
+                }
                 item {
                     Divider(modifier = Modifier.padding(vertical = 16.dp))
                 }
@@ -267,9 +267,10 @@ fun Setting(currentUser: User, navController: NavController) {
     )
 }
 
-private fun updateUser(context: Context, userId: String, name: String, prefName : String) {
+private fun updateUser(context: Context, userId: String, name: String, prefName : String, currentUser: User) {
 
-    //works when .document("user2")
+    currentUser.name = name
+    currentUser.preferredName = prefName
 
     firestore.collection("users").document(userId).update("name",name)
         .addOnSuccessListener {

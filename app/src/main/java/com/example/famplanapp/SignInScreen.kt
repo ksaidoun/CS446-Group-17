@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 //import com.example.famplanapp.BottomNavBar
@@ -77,7 +78,7 @@ fun SignUpButton(onClickAction: () -> Unit, onJoinFamilyChecked: (Boolean) -> Un
             Spacer(modifier = Modifier.height(16.dp))
         }else {
                 Text(
-                    "New Family ID: $familyId",
+                    "New Family ID: "+ familyId,
                     fontSize = 16.sp
                 )
             Spacer(modifier = Modifier.height(16.dp))
@@ -100,7 +101,7 @@ fun SignInScreen() {
     var joinFamily by remember { mutableStateOf(false) }
     var familyCodeText by remember { mutableStateOf("") }
 
-    var familyId = ""
+    var familyId by remember { mutableStateOf("") }
     var uid = ""
     var settingsId = ""
 
@@ -167,6 +168,7 @@ fun SignInScreen() {
                 )
                 OutlinedTextField(
                     value = passwordText,
+                    visualTransformation = PasswordVisualTransformation(),
                     onValueChange = { newText ->
                         passwordText = newText
                         errorMessage = null
@@ -179,6 +181,7 @@ fun SignInScreen() {
                 )
                 OutlinedTextField(
                     value = verifyPasswordText,
+                    visualTransformation = PasswordVisualTransformation(),
                     onValueChange = { newText ->
                         verifyPasswordText = newText
                         errorMessage = null
@@ -251,6 +254,7 @@ fun SignInScreen() {
                 )
                 OutlinedTextField(
                     value = passwordText,
+                    visualTransformation = PasswordVisualTransformation(),
                     onValueChange = { newText ->
                         passwordText = newText
                     }
