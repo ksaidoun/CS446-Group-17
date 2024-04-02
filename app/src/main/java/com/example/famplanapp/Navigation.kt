@@ -232,7 +232,7 @@ fun BottomNavBar(currentUser: User){
                 Gallery(photos)
             }
             composable("Setting") {
-                Setting(currentUser)
+                Setting(currentUser, navController)
                 // Screen content for Setting
             }
         }
