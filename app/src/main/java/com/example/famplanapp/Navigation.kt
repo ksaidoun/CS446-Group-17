@@ -237,6 +237,10 @@ fun BottomNavBar(currentUser: User){
                 Setting(currentUser, navController)
                 // Screen content for Setting
             }
+            composable("Sign In"){
+                SignInScreen()
+            }
+
         }
         /*
         DropdownMenu(

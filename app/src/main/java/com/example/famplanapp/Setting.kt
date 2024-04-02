@@ -165,21 +165,28 @@ fun Setting(currentUser: User, navController: NavController) {
                 item {
                     // Shared Budget Text Field and Slider
                     SectionOne("Shared Budget") {
-                        Text("Shared Budget For Family:", modifier = Modifier.padding(vertical = 8.dp))
-                        if(currentUser.role == "User") {
+                        Text(
+                            "Shared Budget For Family:",
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        if (currentUser.role == "User") {
                             Switch(
                                 checked = sharedBudgetEnabled,
                                 onCheckedChange = { checked ->
-                                    if (currentUser.role == "Admin"){
+                                    if (currentUser.role == "Admin") {
                                         sharedBudgetEnabled = checked
-                                    }else{
-                                        Toast.makeText(context, "Only Admin can edit", Toast.LENGTH_LONG).show()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Only Admin can edit",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 },
                                 enabled = false,
                             )
 
-                        }else{
+                        } else {
                             Switch(
                                 checked = sharedBudgetEnabled,
                                 onCheckedChange = { sharedBudgetEnabled = it },
@@ -194,14 +201,17 @@ fun Setting(currentUser: User, navController: NavController) {
                 // Notification Text Field and Slider
                 item {
                     SectionOne("Notifications:") {
-                       Text("Receive notifications to your phone:", modifier = Modifier.padding(vertical = 16.dp))
-                        if(currentUser.role == "User"){
+                        Text(
+                            "Receive notifications to your phone:",
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+                        if (currentUser.role == "User") {
                             Switch(
                                 checked = notificationEnabled,
                                 onCheckedChange = { notificationEnabled = it },
                                 enabled = false,
                             )
-                        }else{
+                        } else {
                             Switch(
                                 checked = notificationEnabled,
                                 onCheckedChange = { notificationEnabled = it },
@@ -220,7 +230,11 @@ fun Setting(currentUser: User, navController: NavController) {
                                 saveSettings = true
                             } else {
                                 // Handle the case where userId is null or empty
-                                Toast.makeText(context, "User ID is null or empty", Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context,
+                                    "User ID is null or empty",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                         },
                         shape = RoundedCornerShape(25.dp),
@@ -243,12 +257,38 @@ fun Setting(currentUser: User, navController: NavController) {
                                 modifier = Modifier.fillMaxWidth(),
                                 //horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("${user.preferredName}",modifier = Modifier.weight(1f))
-                                Text(text = "${user.role}", textAlign= TextAlign.End,modifier = Modifier.weight(1f))
+                                Text(
+                                    "${user.preferredName}",
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "${user.role}",
+                                    textAlign = TextAlign.End,
+                                    modifier = Modifier.weight(1f)
+                                )
                                 //Spacer(modifier = Modifier.height(5.dp))
 
                             }
                         }
+                    }
+                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                }
+                item{
+                    Button(
+                        onClick = {
+                            // Navigate back to sign-in screen
+                            navController.navigate("Sign In") {
+                                popUpTo(navController.graph.startDestinationRoute!!) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    ) {
+                        Text("Sign Out", fontSize = 16.sp)
                     }
                 }
                 item {
