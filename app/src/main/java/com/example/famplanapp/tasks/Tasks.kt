@@ -98,7 +98,7 @@ fun TaskDisplayArea(tasksViewModel: TasksViewModel, assignees: MutableList<User?
                 key = { task -> task.id }
             ) { task ->
                 if (task.id !in displaying) {
-                    ToDoItem(task) {
+                    ToDoItem(task = task, tasksViewModel = tasksViewModel) {
                         selectedTask = task
                         showDialog = true
                     }
@@ -140,7 +140,7 @@ fun isBefore(timestamp1: Timestamp, timestamp2: Timestamp): Boolean {
     return false
 }
 @Composable
-fun ToDoItem(task: Task, onItemClick: (String) -> Unit) {
+fun ToDoItem(task: Task, tasksViewModel: TasksViewModel, onItemClick: (String) -> Unit,) {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     val formattedDateTime = timestampToLocalDateTime(task.dueDate)?.format(formatter)
     val currentDateTime = Timestamp.now()
@@ -151,7 +151,7 @@ fun ToDoItem(task: Task, onItemClick: (String) -> Unit) {
                     }
     var textColor = Color.Black
     var textDecor: TextDecoration? = null
-    val checkedState = remember { mutableStateOf(task.isCompleted) }
+    var checkedState = remember { mutableStateOf(task.isCompleted) }
     Column(
         modifier = Modifier.clickable {
             onItemClick(task.id)
@@ -165,7 +165,8 @@ fun ToDoItem(task: Task, onItemClick: (String) -> Unit) {
                 checked = checkedState.value,
                 onCheckedChange = {
                     checkedState.value = it
-                    task.isCompleted = checkedState.value
+                    tasksViewModel.updateIsCompleted(task, checkedState.value)
+                    //task.isCompleted = checkedState.value
                 },
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
