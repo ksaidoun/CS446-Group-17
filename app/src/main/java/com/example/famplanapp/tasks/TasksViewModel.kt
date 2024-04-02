@@ -70,7 +70,6 @@ class TasksViewModel: ViewModel() {
             .addOnFailureListener { e ->
                 Log.w(TAG, "Error adding task", e)
             }
-        setCurrDisplayedTasks()
     }
 
     fun deleteTask(task: Task) {
@@ -130,6 +129,23 @@ class TasksViewModel: ViewModel() {
             }
 
         setCurrDisplayedTasks()
+    }
+
+    fun updateIsCompleted(task: Task, isCompleted: Boolean) {
+        task.isCompleted = isCompleted
+        // update database
+
+        val updates = hashMapOf<String, Any>(
+            "completed" to isCompleted
+        )
+        firestore.collection("tasks").document(task.id)
+            .update(updates)
+            .addOnSuccessListener {
+                Log.d(TAG, "Document successfully updated!")
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error updating document", e)
+            }
     }
 
     fun setCurrDisplayedTasks(): List<Task>? {
