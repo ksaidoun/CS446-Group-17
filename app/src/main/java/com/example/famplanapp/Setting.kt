@@ -4,13 +4,18 @@ import android.content.Context
 import android.text.Layout
 import android.widget.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Text
 import androidx.compose.material3.OutlinedTextField
@@ -27,8 +32,17 @@ import androidx.compose.ui.unit.sp
 import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.ui.theme.Purple40
 import androidx.compose.material.Button
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Switch
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 import com.example.famplanapp.globalClasses.AppSettings
 import com.example.famplanapp.globalClasses.Family
 import com.example.famplanapp.globalClasses.FamilyOfUsers
@@ -75,7 +89,7 @@ fun getFamilyUsers(querySnapshot: QuerySnapshot): MutableList<User> {
 }
 
 @Composable
-fun Setting(currentUser: User) {
+fun Setting(currentUser: User, navController: NavController) {
 
     val context = LocalContext.current
 
@@ -95,148 +109,162 @@ fun Setting(currentUser: User) {
     reference.get().addOnSuccessListener { querySnapshot ->
         getFamilyUsers(querySnapshot)
     }
-
-    Column {
-        Spacer(modifier = Modifier.height(70.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ){
-            Text(
-                text = "Settings",
-                fontSize = 24.sp,
-                textAlign = TextAlign.Center,
-                color = Purple40,
-                fontWeight = FontWeight.Bold,
-                //modifier = Modifier.padding(32.dp)
-            )
-
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-        Column {
-            Text(text = "Name:")
-            Spacer(modifier = Modifier.height(5.dp))
-            OutlinedTextField(
-                value = name,
-                onValueChange = { newValue ->
-                    name = newValue
+    Scaffold(
+       topBar = {
+            TopAppBar(
+                title = { Text(text = "Settings") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
                 },
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(text = "Preferred Name:")
-            Spacer(modifier = Modifier.height(5.dp))
-            OutlinedTextField(
-                value = preferredName,
-                onValueChange = { newValue ->
-                    preferredName = newValue
-                },
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Shared Budget Text Field and Slider
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Shared Budget for Family:")
-            Spacer(modifier = Modifier.width(16.dp))
-            if(currentUser.role == "User") {
-                Switch(
-                    checked = sharedBudgetEnabled,
-                    onCheckedChange = { checked ->
-                        if (currentUser.role == "Admin"){
-                            sharedBudgetEnabled = checked
-                        }else{
-                            Toast.makeText(context, "Only Admin can edit", Toast.LENGTH_LONG).show()
+        },
+        content = { paddingValues ->
+            Box(
+                modifier = (Modifier.padding(top = paddingValues.calculateTopPadding()))
+            ) {
+            }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                item {
+                    SectionOne("Username") {
+                        // Display current username
+                        Text(
+                            "Your current username is: [currentUsername]",
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        Divider(modifier = Modifier.padding(vertical = 16.dp))
+                        Column {
+                            Spacer(modifier = Modifier.height(5.dp))
+                            OutlinedTextField(
+                                value = name,
+                                onValueChange = { newValue ->
+                                    name = newValue
+                                },
+                                label = { Text("Name:") }
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            OutlinedTextField(
+                                value = preferredName,
+                                onValueChange = { newValue ->
+                                    preferredName = newValue
+                                },
+                                label = { Text("Preferred Name:") }
+                            )
                         }
-                                      },
-                    enabled = false,
-                )
+                    }
+                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                }
+                item {
+                    // Shared Budget Text Field and Slider
+                    SectionOne("Shared Budget") {
+                        Text("Shared Budget For Family:", modifier = Modifier.padding(vertical = 8.dp))
+                        if(currentUser.role == "User") {
+                            Switch(
+                                checked = sharedBudgetEnabled,
+                                onCheckedChange = { checked ->
+                                    if (currentUser.role == "Admin"){
+                                        sharedBudgetEnabled = checked
+                                    }else{
+                                        Toast.makeText(context, "Only Admin can edit", Toast.LENGTH_LONG).show()
+                                    }
+                                },
+                                enabled = false,
+                            )
 
-            }else{
-                Switch(
-                    checked = sharedBudgetEnabled,
-                    onCheckedChange = { sharedBudgetEnabled = it },
-                    enabled = true,
-                )
-            }
-        }
+                        }else{
+                            Switch(
+                                checked = sharedBudgetEnabled,
+                                onCheckedChange = { sharedBudgetEnabled = it },
+                                enabled = true,
+                            )
+                        }
+                    }
+                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                }
+                // Notification Text Field and Slider
+                item {
+                    SectionOne("Notifications:") {
+                       Text("Receive notifications to your phone:", modifier = Modifier.padding(vertical = 16.dp))
+                        if(currentUser.role == "User"){
+                            Switch(
+                                checked = notificationEnabled,
+                                onCheckedChange = { notificationEnabled = it },
+                                enabled = false,
+                            )
+                        }else{
+                            Switch(
+                                checked = notificationEnabled,
+                                onCheckedChange = { notificationEnabled = it },
+                                enabled = true
+                            )
+                        }
 
-        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                    Button(
+                        onClick = {
+                            if (curId.isNotEmpty()) { // Check if userId is not empty or null
+                                updateUser(context, curId, name, preferredName)
+                                saveSettings = true
+                            } else {
+                                // Handle the case where userId is null or empty
+                                Toast.makeText(context, "User ID is null or empty", Toast.LENGTH_LONG).show()
+                            }
+                        },
+                        shape = RoundedCornerShape(25.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                    ) {
+                        Text("Save", fontSize = 16.sp)
+                    }
 
-        // Notification Text Field and Slider
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Notification")
-            Spacer(modifier = Modifier.width(16.dp))
-            if(currentUser.role == "User"){
-                Switch(
-                    checked = notificationEnabled,
-                    onCheckedChange = { notificationEnabled = it },
-                    enabled = false,
-                )
-            }else{
-                Switch(
-                    checked = notificationEnabled,
-                    onCheckedChange = { notificationEnabled = it },
-                    enabled = true
-                )
-            }
-
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-        Button(
-            onClick = {
-                if (curId.isNotEmpty()) { // Check if userId is not empty or null
-                    updateUser(context, curId, name, preferredName)
-                    saveSettings = true
-                } else {
-                    // Handle the case where userId is null or empty
-                    Toast.makeText(context, "User ID is null or empty", Toast.LENGTH_LONG).show()
+                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                }
+//                item {
+//                    SectionOne("Family Members") {
+//
+//                        users.forEach { user ->
+//                            Row(
+//
+//                            ) {
+//                                Text("${user.preferredName}")
+//                                Spacer(modifier = Modifier.height(5.dp))
+//                            }
+//                        }
+//                    }
+//                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 16.dp))
                 }
             }
-        ) {
-            Text("Save")
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ){
-            Text(
-                text = "Family Members",
-                fontSize = 24.sp,
-                textAlign = TextAlign.Center,
-                color = Purple40,
-                fontWeight = FontWeight.Bold,
-                //modifier = Modifier.padding(32.dp)
-            )
-
-        }
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.Center
-        ) {
-            users.forEach { user ->
-                Row(
-
-                ) {
-                    Text("${user.preferredName}")
-                    Spacer(modifier = Modifier.height(5.dp))
-                }
-            }
-        }
-    }
+        },
+//        bottomBar = {
+//            BottomAppBar(
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//
+//            }
+//        },
+    )
 }
 
 private fun updateUser(context: Context, userId: String, name: String, prefName : String) {
@@ -258,4 +286,11 @@ private fun updateUser(context: Context, userId: String, name: String, prefName 
         .addOnFailureListener {
             Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
         }
+}
+@Composable
+fun SectionOne(title: String, content: @Composable () -> Unit) {
+    Column {
+        Text(title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        content()
+    }
 }
