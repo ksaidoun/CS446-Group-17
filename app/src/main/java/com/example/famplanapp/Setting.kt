@@ -226,7 +226,7 @@ fun Setting(currentUser: User, navController: NavController) {
                     Button(
                         onClick = {
                             if (curId.isNotEmpty()) { // Check if userId is not empty or null
-                                updateUser(context, curId, name, preferredName, currentUser)
+                                updateUser(context, curId, name, preferredName, currentUser, sharedBudgetEnabled, notificationEnabled)
                                 saveSettings = true
                             } else {
                                 // Handle the case where userId is null or empty
@@ -286,27 +286,24 @@ fun Setting(currentUser: User, navController: NavController) {
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
+                        shape = RoundedCornerShape(25.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
                     ) {
                         Text("Sign Out", fontSize = 16.sp)
                     }
                 }
                 item {
-                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                    Divider(modifier = Modifier.padding(vertical = 64.dp))
                 }
             }
         },
-//        bottomBar = {
-//            BottomAppBar(
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//
-//            }
-//        },
     )
 }
 
-private fun updateUser(context: Context, userId: String, name: String, prefName : String, currentUser: User) {
+private fun updateUser(context: Context, userId: String, name: String, prefName : String, currentUser: User, shared: Boolean, notification: Boolean) {
 
     currentUser.name = name
     currentUser.preferredName = prefName
@@ -326,6 +323,16 @@ private fun updateUser(context: Context, userId: String, name: String, prefName 
         .addOnFailureListener {
             Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
         }
+
+    if (currentUser.role == "Admin"){
+        firestore.collection("settings").document(currentUser.settingId).update("sharedBudget",shared)
+            .addOnSuccessListener {
+                Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+            }
+    }
 }
 @Composable
 fun SectionOne(title: String, content: @Composable () -> Unit) {
