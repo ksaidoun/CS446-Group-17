@@ -41,6 +41,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.famplanapp.globalClasses.AppSettings
@@ -49,6 +50,12 @@ import com.example.famplanapp.globalClasses.FamilyOfUsers
 import com.example.famplanapp.schedule.users
 import com.google.firebase.firestore.QuerySnapshot
 
+/*
+add sign out
+make button go back to sign screen **** important
+make button go back to original sign in screen
+add shared budget to database
+ */
 
 fun getFamilyUsers(querySnapshot: QuerySnapshot): MutableList<User> {
     if (!querySnapshot.isEmpty) {
@@ -79,7 +86,7 @@ fun getFamilyUsers(querySnapshot: QuerySnapshot): MutableList<User> {
 }
 
 @Composable
-fun Setting(currentUser: User, navController: NavController) {
+fun Setting(currentUser: User, navController: NavController, sharedBudgetEnabled: MutableState<Boolean>) {
 
     val context = LocalContext.current
 
@@ -87,7 +94,7 @@ fun Setting(currentUser: User, navController: NavController) {
 
     var name by remember { mutableStateOf(currentUser.name) }
     var preferredName by remember { mutableStateOf(currentUser.preferredName) }
-    var sharedBudgetEnabled by remember { mutableStateOf(false) }
+    //var sharedBudgetEnabled = remember { mutableStateOf(false) }
     var notificationEnabled by remember { mutableStateOf(false) }
     var saveSettings by remember { mutableStateOf(false) }
 
@@ -159,24 +166,31 @@ fun Setting(currentUser: User, navController: NavController) {
                 item {
                     // Shared Budget Text Field and Slider
                     SectionOne("Shared Budget") {
-                        Text("Shared Budget For Family:", modifier = Modifier.padding(vertical = 8.dp))
-                        if(currentUser.role == "User") {
+                        Text(
+                            "Shared Budget For Family:",
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        if (currentUser.role == "User") {
                             Switch(
-                                checked = sharedBudgetEnabled,
+                                checked = sharedBudgetEnabled.value,
                                 onCheckedChange = { checked ->
-                                    if (currentUser.role == "Admin"){
-                                        sharedBudgetEnabled = checked
-                                    }else{
-                                        Toast.makeText(context, "Only Admin can edit", Toast.LENGTH_LONG).show()
+                                    if (currentUser.role == "Admin") {
+                                        sharedBudgetEnabled.value = checked
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Only Admin can edit",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 },
                                 enabled = false,
                             )
 
-                        }else{
+                        } else {
                             Switch(
-                                checked = sharedBudgetEnabled,
-                                onCheckedChange = { sharedBudgetEnabled = it },
+                                checked = sharedBudgetEnabled.value,
+                                onCheckedChange = { sharedBudgetEnabled.value = it },
                                 enabled = true,
                             )
                         }
@@ -188,14 +202,17 @@ fun Setting(currentUser: User, navController: NavController) {
                 // Notification Text Field and Slider
                 item {
                     SectionOne("Notifications:") {
-                       Text("Receive notifications to your phone:", modifier = Modifier.padding(vertical = 16.dp))
-                        if(currentUser.role == "User"){
+                        Text(
+                            "Receive notifications to your phone:",
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
+                        if (currentUser.role == "User") {
                             Switch(
                                 checked = notificationEnabled,
                                 onCheckedChange = { notificationEnabled = it },
                                 enabled = false,
                             )
-                        }else{
+                        } else {
                             Switch(
                                 checked = notificationEnabled,
                                 onCheckedChange = { notificationEnabled = it },
@@ -210,11 +227,15 @@ fun Setting(currentUser: User, navController: NavController) {
                     Button(
                         onClick = {
                             if (curId.isNotEmpty()) { // Check if userId is not empty or null
-                                updateUser(context, curId, name, preferredName, currentUser)
+                                updateUser(context, curId, name, preferredName, currentUser, sharedBudgetEnabled.value, notificationEnabled)
                                 saveSettings = true
                             } else {
                                 // Handle the case where userId is null or empty
-                                Toast.makeText(context, "User ID is null or empty", Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context,
+                                    "User ID is null or empty",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                         },
                         shape = RoundedCornerShape(25.dp),
@@ -237,8 +258,15 @@ fun Setting(currentUser: User, navController: NavController) {
                                 modifier = Modifier.fillMaxWidth(),
                                 //horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("${user.preferredName}",modifier = Modifier.weight(1f))
-                                Text(text = "${user.role}", textAlign= TextAlign.End,modifier = Modifier.weight(1f))
+                                Text(
+                                    "${user.preferredName}",
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "${user.role}",
+                                    textAlign = TextAlign.End,
+                                    modifier = Modifier.weight(1f)
+                                )
                                 //Spacer(modifier = Modifier.height(5.dp))
 
                             }
@@ -248,19 +276,35 @@ fun Setting(currentUser: User, navController: NavController) {
                 item {
                     Divider(modifier = Modifier.padding(vertical = 16.dp))
                 }
+                item{
+                    Button(
+                        onClick = {
+                            // Navigate back to sign-in screen
+                            navController.navigate("Sign In") {
+                                popUpTo(navController.graph.startDestinationRoute!!) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        shape = RoundedCornerShape(25.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                    ) {
+                        Text("Sign Out", fontSize = 16.sp)
+                    }
+                }
+                item {
+                    Divider(modifier = Modifier.padding(vertical = 64.dp))
+                }
             }
         },
-//        bottomBar = {
-//            BottomAppBar(
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//
-//            }
-//        },
     )
 }
 
-private fun updateUser(context: Context, userId: String, name: String, prefName : String, currentUser: User) {
+private fun updateUser(context: Context, userId: String, name: String, prefName : String, currentUser: User, shared: Boolean, notification: Boolean) {
 
     currentUser.name = name
     currentUser.preferredName = prefName
@@ -280,6 +324,16 @@ private fun updateUser(context: Context, userId: String, name: String, prefName 
         .addOnFailureListener {
             Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
         }
+
+    if (currentUser.role == "Admin"){
+        firestore.collection("settings").document(currentUser.settingId).update("sharedBudget",shared)
+            .addOnSuccessListener {
+                Toast.makeText(context,"Data added ",Toast.LENGTH_LONG).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(context," Data not added ",Toast.LENGTH_LONG).show()
+            }
+    }
 }
 @Composable
 fun SectionOne(title: String, content: @Composable () -> Unit) {
