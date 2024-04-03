@@ -92,9 +92,10 @@ fun Setting(currentUser: User, navController: NavController, sharedBudgetEnabled
 
     val curId = currentUser.userId
 
-    var name by remember { mutableStateOf(currentUser.name) }
-    var preferredName by remember { mutableStateOf(currentUser.preferredName) }
-    //var sharedBudgetEnabled = remember { mutableStateOf(false) }
+
+    var name by remember { mutableStateOf("") }
+    var preferredName by remember { mutableStateOf("") }
+    //var sharedBudgetEnabled by remember { mutableStateOf(false) }
     var notificationEnabled by remember { mutableStateOf(false) }
     var saveSettings by remember { mutableStateOf(false) }
 
@@ -229,6 +230,8 @@ fun Setting(currentUser: User, navController: NavController, sharedBudgetEnabled
                             if (curId.isNotEmpty()) { // Check if userId is not empty or null
                                 updateUser(context, curId, name, preferredName, currentUser, sharedBudgetEnabled.value, notificationEnabled)
                                 saveSettings = true
+                                name = ""
+                                preferredName = ""
                             } else {
                                 // Handle the case where userId is null or empty
                                 Toast.makeText(
