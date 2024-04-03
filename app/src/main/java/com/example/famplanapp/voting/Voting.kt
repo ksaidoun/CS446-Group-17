@@ -46,13 +46,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.famplanapp.currUser
 import com.example.famplanapp.darkPurple
+import com.example.famplanapp.firestore
+import com.example.famplanapp.getFamilyUsers
+import com.example.famplanapp.globalClasses.User
 import com.example.famplanapp.globalClasses.UserCopy
 import com.example.famplanapp.lightPurple
 import com.example.famplanapp.tasks.TasksDatePicker
 import com.example.famplanapp.tasks.TasksTimePicker
 import java.time.Duration
 import java.time.LocalDateTime
+
 
 var pollList = mutableListOf(
     Poll(1, UserCopy("Julia"),"What should we have for dinner tonight?",
@@ -69,13 +74,13 @@ var pollList = mutableListOf(
             PollOption("Watch a movie")
         ),
         LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours
-    Poll(2,  UserCopy("Dad"),"Poll question?",
+    Poll(2,  UserCopy("Dad"),"What home improvement project should I do next?",
         listOf(
-            PollOption("Option A", 2),
-            PollOption("Option B", 1),
-            PollOption("Option C",3),
-            PollOption("Option D", 0),
-            PollOption("Option E", 1)),
+            PollOption("Paint the living room", 2),
+            PollOption("Garden makeover", 1),
+            PollOption("Upgrade the kitchen",3),
+            PollOption("Garage cleanout", 0),
+            PollOption("Nothing right now", 1)),
         LocalDateTime.now().minusDays(1)) // Poll ends in 12 hours,
 )
 
@@ -392,7 +397,7 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
                     onPollCreated(
                         Poll(
                             id = 0,// refactor this when database is implemented
-                            owner = UserCopy("CurrentUser"),
+                            owner = UserCopy("me"),
                             subject = title,
                             options = options.map { PollOption(it) },
                             deadline = deadline
