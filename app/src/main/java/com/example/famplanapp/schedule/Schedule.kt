@@ -64,7 +64,7 @@ fun makeEvent(eventsViewModel: EventsViewModel, eventName: String, attendees: St
 @Composable
 fun CalendarUI(eventsViewModel: EventsViewModel,
     currentWeekSunday: LocalDate,
-    selectedCells: Set<Pair<Int, Int>>,
+    selectedCells: Set<Pair<Int, Int>>, sharedBudgetEnabled: MutableState<Boolean>,
     onCellClick: (Int, Int) -> Unit
 ) {
     //fetchEventsFromDb()
@@ -169,15 +169,17 @@ fun CalendarUI(eventsViewModel: EventsViewModel,
                             label = { Text("Attendees") }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        TextField(
-                            value = cost.text,
-                            onValueChange = { cost = TextFieldValue(it) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.body1,
-                            label = { Text("Cost") }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        if(sharedBudgetEnabled.value) {
+                            TextField(
+                                value = cost.text,
+                                onValueChange = { cost = TextFieldValue(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                textStyle = MaterialTheme.typography.body1,
+                                label = { Text("Cost") }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                         /*TextField(
                             value = sharedBudget.toString(),
                             onValueChange = { /* Disable editing */ },
@@ -231,7 +233,7 @@ fun daysInMonth(monthIndex: Int): Int {
 }
 
 @Composable
-fun Schedule(eventsViewModel: EventsViewModel, innerPadding: PaddingValues) {
+fun Schedule(eventsViewModel: EventsViewModel, innerPadding: PaddingValues, sharedBudgetEnabled: MutableState<Boolean>) {
     var currentWeekSunday by remember { mutableStateOf(LocalDate.now().with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SUNDAY))) }
     var selectedCells by remember { mutableStateOf(emptySet<Pair<Int, Int>>()) }
 
@@ -266,19 +268,22 @@ fun Schedule(eventsViewModel: EventsViewModel, innerPadding: PaddingValues) {
                 fontSize = 18.sp
             ))
         }
-        TextField(
-            value = sharedBudget.toString(),
-            onValueChange = {
-                sharedBudget = it.toIntOrNull() ?: 0
-            },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            textStyle = MaterialTheme.typography.body1,
-            label = { Text("Shared Budget") }
-        )
+        if(sharedBudgetEnabled.value) {
+            TextField(
+                value = sharedBudget.toString(),
+                onValueChange = {
+                    sharedBudget = it.toIntOrNull() ?: 0
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.body1,
+                label = { Text("Shared Budget") }
+            )
+        }
         CalendarUI(eventsViewModel = eventsViewModel,
             currentWeekSunday = currentWeekSunday,
             selectedCells = selectedCells,
+            sharedBudgetEnabled=sharedBudgetEnabled,
             onCellClick = { rowIndex, columnIndex ->
                 selectedCells = setOf(rowIndex to columnIndex)
             }

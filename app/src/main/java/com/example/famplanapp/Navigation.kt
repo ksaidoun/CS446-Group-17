@@ -69,7 +69,7 @@ fun BottomNavBar(currentUser: User){
     val tasksViewModel: TasksViewModel = viewModel()
     val eventsViewModel: EventsViewModel = viewModel()
     var menuExpanded by remember { mutableStateOf(false) }
-
+    var sharedBudgetEnabled = remember { mutableStateOf(false) }
     val navItems = listOf(
         //NavItem("Home", Icons.Default.Home),
         NavItem("Schedule", Icons.Default.DateRange),
@@ -220,7 +220,7 @@ fun BottomNavBar(currentUser: User){
             }
             composable("Schedule") {
                 // Screen content for Schedule
-                Schedule(eventsViewModel, innerPadding)
+                Schedule(eventsViewModel, innerPadding, sharedBudgetEnabled)
             }
             composable("Tasks") {
                 // Screen content for Tasks
@@ -234,7 +234,7 @@ fun BottomNavBar(currentUser: User){
                 Gallery(photos)
             }
             composable("Setting") {
-                Setting(currentUser, navController)
+                Setting(currentUser, navController, sharedBudgetEnabled)
                 // Screen content for Setting
             }
             composable("Sign In"){

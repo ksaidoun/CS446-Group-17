@@ -41,6 +41,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.famplanapp.globalClasses.AppSettings
@@ -85,7 +86,7 @@ fun getFamilyUsers(querySnapshot: QuerySnapshot): MutableList<User> {
 }
 
 @Composable
-fun Setting(currentUser: User, navController: NavController) {
+fun Setting(currentUser: User, navController: NavController, sharedBudgetEnabled: MutableState<Boolean>) {
 
     val context = LocalContext.current
 
@@ -93,7 +94,7 @@ fun Setting(currentUser: User, navController: NavController) {
 
     var name by remember { mutableStateOf(currentUser.name) }
     var preferredName by remember { mutableStateOf(currentUser.preferredName) }
-    var sharedBudgetEnabled by remember { mutableStateOf(false) }
+    //var sharedBudgetEnabled = remember { mutableStateOf(false) }
     var notificationEnabled by remember { mutableStateOf(false) }
     var saveSettings by remember { mutableStateOf(false) }
 
@@ -171,10 +172,10 @@ fun Setting(currentUser: User, navController: NavController) {
                         )
                         if (currentUser.role == "User") {
                             Switch(
-                                checked = sharedBudgetEnabled,
+                                checked = sharedBudgetEnabled.value,
                                 onCheckedChange = { checked ->
                                     if (currentUser.role == "Admin") {
-                                        sharedBudgetEnabled = checked
+                                        sharedBudgetEnabled.value = checked
                                     } else {
                                         Toast.makeText(
                                             context,
@@ -188,8 +189,8 @@ fun Setting(currentUser: User, navController: NavController) {
 
                         } else {
                             Switch(
-                                checked = sharedBudgetEnabled,
-                                onCheckedChange = { sharedBudgetEnabled = it },
+                                checked = sharedBudgetEnabled.value,
+                                onCheckedChange = { sharedBudgetEnabled.value = it },
                                 enabled = true,
                             )
                         }
@@ -226,7 +227,7 @@ fun Setting(currentUser: User, navController: NavController) {
                     Button(
                         onClick = {
                             if (curId.isNotEmpty()) { // Check if userId is not empty or null
-                                updateUser(context, curId, name, preferredName, currentUser, sharedBudgetEnabled, notificationEnabled)
+                                updateUser(context, curId, name, preferredName, currentUser, sharedBudgetEnabled.value, notificationEnabled)
                                 saveSettings = true
                             } else {
                                 // Handle the case where userId is null or empty
