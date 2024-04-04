@@ -8,3 +8,5 @@ Group Members:
 - Hemika Roy (20835090). Github username: hemika44, Quest username: h3roy
 - Lauren Smith (20775886). Github username: Lauren15468, Quest username: ll3smith
 - Sherry Lev (20883108). Github username: SherryLev, Quest username: slev
+
+Note: When attempting to run our code, there will be two different projects. Make sure to run the "app" or "FamPlanApp". If there is the option to run "FamPlan", that will be the older, scrapped version of our project built using XML files.
