@@ -150,7 +150,7 @@ fun PollCard(votingViewModel: VotingViewModel, poll: Poll) {
 
                 // owner of poll
                 Text(
-                    text = "From ${poll.owner.name}:",
+                    text = if (poll.owner == currUser) "From me:" else "From ${poll.owner.name}:",
                     style = MaterialTheme.typography.subtitle2,
                     color = cColor
                 )
