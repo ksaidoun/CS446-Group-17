@@ -116,12 +116,11 @@ fun PollCard(votingViewModel: VotingViewModel, poll: Poll) {
     // Calculate the time left until the deadline
     val deadlineLocalDateTime = poll.deadline?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDateTime()
 
-// Now, use 'deadlineLocalDateTime' for your duration calculation
     val nowLocalDateTime = LocalDateTime.now(ZoneId.systemDefault())
     val timeLeft: Duration = if (deadlineLocalDateTime != null) {
         Duration.between(nowLocalDateTime, deadlineLocalDateTime)
     } else {
-        Duration.ofSeconds(-1) // Ensure 'timeLeft' is negative if there's no deadline
+        Duration.ofSeconds(-1)
     }
 
     // colors for active vs inactive polls
