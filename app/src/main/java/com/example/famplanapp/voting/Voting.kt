@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,74 +49,23 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.famplanapp.currUser
 import com.example.famplanapp.darkPurple
-import com.example.famplanapp.firestore
-import com.example.famplanapp.getFamilyUsers
-import com.example.famplanapp.globalClasses.User
-import com.example.famplanapp.globalClasses.UserCopy
 import com.example.famplanapp.lightPurple
 import com.example.famplanapp.tasks.TasksDatePicker
 import com.example.famplanapp.tasks.TasksTimePicker
+import com.example.famplanapp.tasks.localDateTimeToTimestamp
+import com.google.firebase.Timestamp
 import java.time.Duration
 import java.time.LocalDateTime
-
-
-var pollList = mutableListOf(
-    Poll(1, UserCopy("Julia"),"What should we have for dinner tonight?",
-        listOf(
-            PollOption("Chili with rice"),
-            PollOption("Chicken stir fry"),
-            PollOption("Something else"),
-            PollOption("Another option")),
-        LocalDateTime.now().plusHours(3)), // Poll ends in 1 day
-    Poll(2,  UserCopy("Michael"),"How should we spend Family Day 2024?",
-        listOf(
-            PollOption("Go skiing"),
-            PollOption("Go to Niagara Falls"),
-            PollOption("Watch a movie")
-        ),
-        LocalDateTime.now().plusHours(12)), // Poll ends in 12 hours
-    Poll(2,  UserCopy("Dad"),"What home improvement project should I do next?",
-        listOf(
-            PollOption("Paint the living room", 2),
-            PollOption("Garden makeover", 1),
-            PollOption("Upgrade the kitchen",3),
-            PollOption("Garage cleanout", 0),
-            PollOption("Nothing right now", 1)),
-        LocalDateTime.now().minusDays(1)) // Poll ends in 12 hours,
-)
-
-fun addToPolls(pollList: MutableList<Poll>, poll: Poll) {
-    pollList.add(poll)
-
-    val now = LocalDateTime.now()
-    pollList.sortWith{ p1, p2 ->
-        when {
-            // Both deadlines are null, compare by ID
-            p1.deadline == null && p2.deadline == null -> p1.id.compareTo(p2.id)
-            // Only the first deadline is null, the second goes first
-            p1.deadline == null -> 1
-            // Only the second deadline is null, the first goes first
-            p2.deadline == null -> -1
-            // Both deadlines are in the past, order by how long past
-            p1.deadline.isBefore(now) && p2.deadline.isBefore(now) -> p2.deadline.compareTo(p1.deadline)
-            // First deadline is in the past, the second goes first
-            p1.deadline.isBefore(now) -> 1
-            // Second deadline is in the past, the first goes first
-            p2.deadline.isBefore(now) -> -1
-            // Both deadlines are in the future, order by soonest first
-            else -> p1.deadline.compareTo(p2.deadline)
-        }
-    }
-}
+import java.time.ZoneId
 
 @Composable
-fun Voting(innerPadding: PaddingValues) {
+fun Voting(votingViewModel: VotingViewModel, innerPadding: PaddingValues) {
     var showPollCreationDialog by remember { mutableStateOf(false) }
 
     // Screen content for Voting
     Box(modifier = Modifier.fillMaxSize()) {
 
-        PollList(pollList)
+        PollList(votingViewModel)
 
         Box(
             modifier = Modifier
@@ -143,7 +93,7 @@ fun Voting(innerPadding: PaddingValues) {
                     .background(Color.White)
             ) {
                 PollCreationScreen(onPollCreated = { poll ->
-                    addToPolls(pollList, poll)
+                    votingViewModel.addPoll(poll)
                     showPollCreationDialog = false
                 })
                 Button(
@@ -161,10 +111,18 @@ fun Voting(innerPadding: PaddingValues) {
 }
 
 @Composable
-fun PollCard(poll: Poll) {
+fun PollCard(votingViewModel: VotingViewModel, poll: Poll) {
 
     // Calculate the time left until the deadline
-    val timeLeft = Duration.between(LocalDateTime.now(), poll.deadline)
+    val deadlineLocalDateTime = poll.deadline?.toDate()?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDateTime()
+
+// Now, use 'deadlineLocalDateTime' for your duration calculation
+    val nowLocalDateTime = LocalDateTime.now(ZoneId.systemDefault())
+    val timeLeft: Duration = if (deadlineLocalDateTime != null) {
+        Duration.between(nowLocalDateTime, deadlineLocalDateTime)
+    } else {
+        Duration.ofSeconds(-1) // Ensure 'timeLeft' is negative if there's no deadline
+    }
 
     // colors for active vs inactive polls
     val bColor = if (timeLeft.isNegative) Color.LightGray else Color(lightPurple)
@@ -201,10 +159,7 @@ fun PollCard(poll: Poll) {
                 // time left to vote
                 Text(
                     text = if (timeLeft.isNegative) "Poll ended" else "${
-                        Duration.between(
-                            LocalDateTime.now(),
-                            poll.deadline
-                        ).toHours()
+                       timeLeft.toHours()
                     }h left",
                     style = MaterialTheme.typography.subtitle2,
                     color = cColor,
@@ -271,6 +226,7 @@ fun PollCard(poll: Poll) {
                             onClick = {
                                 if (!timeLeft.isNegative && votedOption == null) {
                                     votedOption = option.option
+                                    votingViewModel.voteOption(option.option, option.votes)
                                 }
                             },
                             enabled = !timeLeft.isNegative,
@@ -298,12 +254,14 @@ fun PollCard(poll: Poll) {
 }
 
 @Composable
-fun PollList(polls: List<Poll>) {
+fun PollList(votingViewModel: VotingViewModel) {
+    val polls = votingViewModel.pollsList.observeAsState(initial = emptyList()).value
+
     val backgroundColor = Color(darkPurple)
     Surface(color = backgroundColor, modifier = Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.padding(bottom = 70.dp, top=50.dp)) {
             items(polls) { poll ->
-                PollCard(poll = poll)
+                PollCard(votingViewModel, poll)
             }
         }
     }
@@ -314,7 +272,7 @@ fun PollList(polls: List<Poll>) {
 fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
     var title by remember { mutableStateOf("") }
     var options by remember { mutableStateOf(listOf("", "")) }
-    var deadline by remember { mutableStateOf(LocalDateTime.now().plusDays(1)) }
+    var deadline: Timestamp? = null
 
     Column(
         modifier = Modifier.padding(16.dp),
@@ -386,7 +344,7 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
             val dueDate = TasksDatePicker("Due Date", null)
             Spacer(modifier = Modifier.width(8.dp))
             val dueTime = TasksTimePicker()
-            deadline = dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second)
+            deadline = localDateTimeToTimestamp(dueDate?.withHour(dueTime.first)?.withMinute(dueTime.second))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -396,8 +354,8 @@ fun PollCreationScreen(onPollCreated: (Poll) -> Unit) {
                 if (title.isNotBlank() && options.all { it.isNotBlank() }) {
                     onPollCreated(
                         Poll(
-                            id = 0,// refactor this when database is implemented
-                            owner = UserCopy("me"),
+                            id = "",
+                            owner = currUser,
                             subject = title,
                             options = options.map { PollOption(it) },
                             deadline = deadline
