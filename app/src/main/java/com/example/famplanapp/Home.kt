@@ -31,7 +31,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.famplanapp.schedule.EventsViewModel
 import com.example.famplanapp.tasks.TasksViewModel
-import com.example.famplanapp.voting.pollList
+import com.example.famplanapp.voting.VotingViewModel
 
 //val CustomPurple = Color(0xFF5D3FD3)
 val taskSentences = listOf(
@@ -50,12 +50,13 @@ val eventsSentences = listOf(
     "Sunday brunch",
 )
 @Composable
-fun Home(innerPadding: PaddingValues, eventViewModel: EventsViewModel, viewModel: TasksViewModel, navController: NavController) {
+fun Home(innerPadding: PaddingValues, eventViewModel: EventsViewModel, viewModel: TasksViewModel, votingViewModel: VotingViewModel, navController: NavController) {
     val currentTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val tasksState = viewModel.tasksList.observeAsState(initial = emptyList())
     val taskTitles = tasksState.value.map { it.title }
 
-    val pollTitles = pollList.map { it.subject }
+    val pollsState = votingViewModel.pollsList.observeAsState(initial = emptyList())
+    val pollTitles = pollsState.value.map { it.subject }
 
     val eventsState = eventViewModel.eventList.observeAsState(initial = emptyList())
     val eventTitles = eventsState.value.map { it.title }

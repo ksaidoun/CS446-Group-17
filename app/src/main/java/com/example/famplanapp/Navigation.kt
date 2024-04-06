@@ -27,9 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,18 +37,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.example.famplanapp.gallery.Gallery
 import com.example.famplanapp.globalClasses.*
 import com.example.famplanapp.schedule.EventsViewModel
 import com.example.famplanapp.schedule.Schedule
 import com.example.famplanapp.tasks.Task
 import com.example.famplanapp.tasks.Tasks
-import com.example.famplanapp.voting.PollCreationScreen
-import com.example.famplanapp.voting.PollList
 import com.example.famplanapp.tasks.TasksViewModel
+import com.example.famplanapp.voting.VotingViewModel
 import com.example.famplanapp.voting.Voting
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -68,6 +61,7 @@ fun BottomNavBar(currentUser: User){
     val navController = rememberNavController()
     val tasksViewModel: TasksViewModel = viewModel()
     val eventsViewModel: EventsViewModel = viewModel()
+    val votingViewModel: VotingViewModel = viewModel()
     var menuExpanded by remember { mutableStateOf(false) }
     var sharedBudgetEnabled = remember { mutableStateOf(false) }
     val navItems = listOf(
@@ -215,7 +209,7 @@ fun BottomNavBar(currentUser: User){
     ) { innerPadding ->
         NavHost(navController, startDestination = "Home") {
             composable("Home") {
-                Home(innerPadding, eventsViewModel, tasksViewModel, navController)
+                Home(innerPadding, eventsViewModel, tasksViewModel, votingViewModel, navController)
                 // Screen content for Home
             }
             composable("Schedule") {
@@ -227,7 +221,7 @@ fun BottomNavBar(currentUser: User){
                 Tasks(tasksViewModel, innerPadding)
             }
             composable("Voting") {
-                Voting(innerPadding)
+                Voting(votingViewModel, innerPadding)
             }
             composable("Gallery") {
                 // Screen content for Gallery
