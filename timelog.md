@@ -14,14 +14,14 @@
 |2024/03/08  |        |        |        |  4.0   |         |  4.0   | Worked on features to showcase for the prototype demo
 |2024/03/08  |        |        |        |        |  14.0   |        | Worked on integrating Firebase project (Storage + Database)
 |2024/03/18  |   1.5  |  0.5   | 1.5    |  1.0   |  0.5    |  1.5   | Worked on Architecture Style Examples document
-|2024/03/24  |        |  2.0   | 6.0    |  6.0   |         |  6.0   | Features for final presentation
+|2024/03/24  |        |  2.0   | 6.0    |  6.0   |  6.0    |  6.0   | Features for final presentation
 |2024/03/25  |   1.5  |  1.0   | 1.5    |  1.5   |  1.5    |  1.5   | Worked on Design Pattern Examples document
-|2024/03/27  |   5.0  |  2.0   | 10.0   |  7.0   |         |  8.0   | Worked on features for the final presentation
+|2024/03/27  |   5.0  |  2.0   | 10.0   |  7.0   |  5.0    |  8.0   | Worked on features for the final presentation
 |2024/03/29  |   1.0  |        |        |        |         |        | Revised the Design Pattern document before submission
 |2024/03/30  |   2.0  |        | 4.0    |        |         |        | Worked on features for the final presentation
 |2024/03/31  |   2.0  |   4.0  |        |  4.0   |  4.5    |   5.0  | Worked on more features for the final presentation
-|2024/04/01  |   5.0  |   7.0  | 8.0    |  2.0   |         |  5.0   | Worked on more features for the final presentation
-|2024/04/01  |   2.0  |   2.0  | 2.0    |  2.0   |         |  2.0   | Meeting to discuss presentation and architecture document
-|2024/04/02  |   2.5  |   6.0  | 5.0    |        |         |  5.0   | Worked on more features for the final presentation
-|2024/04/05  |        |        | 4.0    |        |         |        | Architecture & Design document
-|2024/04/07  |        |        | 2.0    |        |         |        | Final Status Report
+|2024/04/01  |   5.0  |   7.0  | 8.0    |  2.0   |  4.0    |  5.0   | Worked on more features for the final presentation
+|2024/04/01  |   2.0  |   2.0  | 2.0    |  2.0   |  2.0    |  2.0   | Meeting to discuss presentation and architecture document
+|2024/04/02  |   2.5  |   6.0  | 5.0    |        |  4.0    |  5.0   | Worked on more features for the final presentation
+|2024/04/05  |        |        | 4.0    |        |  5.0    |        | Architecture & Design document
+|2024/04/07  |        |        | 2.0    |        |  2.0    |        | Final Status Report
