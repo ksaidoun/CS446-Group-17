@@ -23,5 +23,6 @@
 |2024/04/01  |   5.0  |   7.0  | 8.0    |  2.0   |  4.0    |  5.0   | Worked on more features for the final presentation
 |2024/04/01  |   2.0  |   2.0  | 2.0    |  2.0   |  2.0    |  2.0   | Meeting to discuss presentation and architecture document
 |2024/04/02  |   2.5  |   6.0  | 5.0    |        |  4.0    |  5.0   | Worked on more features for the final presentation
-|2024/04/05  |        |        | 4.0    |        |  5.0    |        | Architecture & Design document
-|2024/04/07  |        |        | 2.0    |        |  2.0    |        | Final Status Report
+|2024/04/05  |        |        | 4.0    |  4.0   |  5.0    |        | Architecture & Design document
+|2024/04/06  |        |        |        |  8.0   |         |        | Added persistence to polls
+|2024/04/07  |        |        | 2.0    |  2.0   |  2.0    |        | Final Status Report
